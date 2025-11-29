@@ -6,227 +6,438 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --red: #b22222;
+      --red: #e63946;
+      --red-dark: #b22222;
       --green: #0b6623;
+      --green-soft: #17803b;
       --gold: #ffd700;
-      --bg: #02110f;
-      --card-bg: rgba(255, 255, 255, 0.1);
-      --card-border: rgba(255, 255, 255, 0.3);
+      --bg: #020b0f;
+      --bg-soft: #071c1a;
+      --card-bg: rgba(7, 28, 26, 0.95);
+      --card-border: rgba(255, 255, 255, 0.15);
       --text: #fdfdfd;
+      --muted: #cfd8dc;
     }
+
     * {
       box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    body {
+
+    html, body {
       margin: 0;
-      min-height: 100vh;
+      padding: 0;
+      min-height: 100%;
       color: var(--text);
-      background: radial-gradient(circle at top, #114, var(--bg));
+      background: radial-gradient(circle at top, #123, var(--bg));
     }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+
     .overlay {
       min-height: 100vh;
-      background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(0,40,0,0.9));
+      width: 100%;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.05), transparent 60%),
+        linear-gradient(135deg, rgba(1, 10, 8, 0.98), rgba(0, 40, 24, 0.96));
       padding: 16px;
     }
+
     .container {
       max-width: 1100px;
       margin: 0 auto;
     }
+
+    /* HEADER */
     header {
       text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
+
     header h1 {
-      margin: 0;
-      font-size: 2.1rem;
-      color: var(--gold);
-      text-shadow: 0 0 10px rgba(255,215,0,0.7);
+      margin: 4px 0 2px;
+      font-size: 2.2rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fffbea;
+      text-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
     }
+
     header p {
-      margin: 4px 0 0;
+      margin: 4px auto 0;
       font-size: 0.95rem;
-      color: #f0f0f0;
+      color: var(--muted);
+      max-width: 420px;
     }
+
     .snowflakes {
-      font-size: 1.3rem;
+      font-size: 1.5rem;
+      animation: float-snow 4s ease-in-out infinite;
     }
-    .card {
+
+    @keyframes float-snow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* CARDS / PANELS */
+    .card,
+    .login-card,
+    .main-layout {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.4);
-      margin-bottom: 16px;
+      border-radius: 18px;
+      padding: 16px 16px 18px;
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(16px);
     }
-    .login-card, .main-layout {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.4);
-    }
+
     .login-card {
-      max-width: 400px;
-      margin: 40px auto 0;
+      max-width: 420px;
+      margin: 32px auto 0;
       text-align: center;
     }
+
+    .login-card p {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
     .login-card input {
       width: 100%;
-      padding: 10px;
+      padding: 11px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.4);
-      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.35);
       color: var(--text);
       margin-bottom: 10px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
     }
-    .btn {
-      padding: 10px 18px;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s;
+
+    .login-card input::placeholder {
+      color: rgba(255,255,255,0.5);
     }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--red), #ff4d4d);
-      color: #fff;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+
+    .login-card input:focus {
+      border-color: var(--gold);
+      background: rgba(0,0,0,0.55);
+      box-shadow: 0 0 0 1px rgba(255,215,0,0.5);
     }
-    .btn-secondary {
-      background: linear-gradient(135deg, var(--green), #1aa34a);
-      color: #fff;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-    }
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-    .btn:active:not(:disabled) {
-      transform: translateY(1px) scale(0.98);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    }
-    .main-layout {
-      display: none;
-      margin-top: 16px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
-      gap: 16px;
-    }
-    @media (max-width: 800px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    .question-text {
-      font-size: 1.2rem;
-      margin: 8px 0 12px;
-    }
-    .timer {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--gold);
-    }
-    .status {
-      font-size: 0.9rem;
-      margin-top: 6px;
-      color: #f5f5f5;
-      min-height: 1.2em;
-    }
-    .buzz-section {
-      margin-top: 16px;
-      text-align: center;
-    }
-    .buzz-btn {
-      font-size: 1.1rem;
-      padding: 12px 24px;
-    }
-    .manager-panel {
-      margin-top: 12px;
-      border-top: 1px dashed rgba(255,255,255,0.2);
-      padding-top: 10px;
-      font-size: 0.9rem;
-    }
-    .manager-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-    .scoreboard-list {
-      list-style: none;
-      padding: 0;
-      margin: 8px 0 0;
-      max-height: 260px;
-      overflow-y: auto;
-    }
-    .scoreboard-list li {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 6px 8px;
-      margin-bottom: 4px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-    }
-    .score-name {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .badge {
-      font-size: 0.9rem;
-    }
-    .toast {
-      margin-top: 8px;
-      font-size: 0.9rem;
-      color: #f8f8f8;
-      min-height: 1.2em;
-    }
-    .game-ideas {
-      margin-top: 8px;
-      font-size: 0.85rem;
-      color: #f5f5f5;
-    }
+
     .tagline {
       font-size: 0.8rem;
       color: rgba(255,255,255,0.8);
       margin-top: 4px;
     }
 
-    /* BIG overlay when someone buzzes in */
+    /* BUTTONS */
+    .btn {
+      padding: 11px 18px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition:
+        transform 0.08s ease,
+        box-shadow 0.12s ease,
+        background 0.15s ease,
+        opacity 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--red), #ff6b6b);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.6);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--green), var(--green-soft));
+      color: #fff;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    .btn + .btn {
+      margin-left: 6px;
+    }
+
+    .main-layout {
+      display: none;
+      margin-top: 16px;
+    }
+
+    /* GRID LAYOUT */
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.35fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* QUESTION CARD */
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .question-text {
+      font-size: 1.15rem;
+      margin: 8px 0 12px;
+      line-height: 1.4;
+    }
+
+    .timer {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+
+    .status {
+      font-size: 0.9rem;
+      margin-top: 4px;
+      color: #e0f2f1;
+      min-height: 1.2em;
+    }
+
+    .buzz-section {
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .buzz-btn {
+      font-size: 1.1rem;
+      padding: 13px 26px;
+      width: 100%;
+      max-width: 320px;
+      border-radius: 999px;
+    }
+
+    #toast {
+      margin-top: 10px;
+      font-size: 0.88rem;
+      color: #ffe082;
+      min-height: 1.1em;
+      text-align: center;
+    }
+
+    .manager-panel {
+      margin-top: 14px;
+      border-top: 1px dashed rgba(255,255,255,0.18);
+      padding-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .manager-panel h3 {
+      margin: 0 0 6px;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+
+    .manager-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    /* SCOREBOARD */
+    .card h2 span {
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+
+    #role-banner {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    #role-banner::before {
+      content: '🎄 ';
+    }
+
+    .scoreboard-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .scoreboard-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      margin-bottom: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.9rem;
+    }
+
+    .scoreboard-list li.me {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px rgba(255,215,0,0.4);
+    }
+
+    .score-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      font-size: 0.95rem;
+    }
+
+    .scoreboard-list li div:last-child {
+      font-weight: 600;
+    }
+
+    .game-ideas {
+      margin-top: 10px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .game-ideas ul {
+      margin: 4px 0 0;
+      padding-left: 18px;
+    }
+
+    /* BUZZ OVERLAY */
     .buzz-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.7);
+      background: radial-gradient(circle at top, rgba(0,0,0,0.85), rgba(0,0,0,0.9));
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 999;
     }
+
     .buzz-overlay-content {
       background: radial-gradient(circle at top, #1b3a1b, #020b08);
-      border-radius: 20px;
-      padding: 24px 32px;
+      border-radius: 22px;
+      padding: 22px 20px 20px;
       border: 2px solid var(--gold);
-      box-shadow: 0 0 50px rgba(0,0,0,0.8);
+      box-shadow: 0 0 60px rgba(0,0,0,0.9);
       text-align: center;
       max-width: 420px;
       width: 90%;
     }
+
     .buzz-overlay-content h2 {
-      margin: 0 0 8px;
-      font-size: 1.6rem;
+      margin: 0 0 6px;
+      font-size: 1.5rem;
       color: var(--gold);
     }
+
     .buzz-overlay-content p {
       margin: 4px 0 0;
-      font-size: 1rem;
+      font-size: 0.98rem;
       color: #fefefe;
+    }
+
+    /* MOBILE OPTIMIZATIONS */
+    @media (max-width: 700px) {
+      header h1 {
+        font-size: 1.7rem;
+      }
+
+      header p {
+        font-size: 0.9rem;
+      }
+
+      .login-card {
+        margin-top: 20px;
+        padding: 16px 14px 18px;
+      }
+
+      .card,
+      .main-layout {
+        padding: 14px 12px 16px;
+      }
+
+      .question-text {
+        font-size: 1.05rem;
+      }
+
+      .timer {
+        font-size: 1rem;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .btn + .btn {
+        margin-left: 0;
+      }
+
+      .manager-buttons {
+        flex-direction: column;
+      }
+
+      .buzz-overlay-content {
+        padding: 18px 16px 16px;
+      }
+    }
+
+    /* EXTRA SMALL DEVICES */
+    @media (max-width: 380px) {
+      header h1 {
+        font-size: 1.55rem;
+      }
+      .question-text {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
@@ -234,21 +445,21 @@
 <div class="overlay">
   <div class="container">
     <header>
-      <div class="snowflakes">❄️🎄❄️</div>
+      <div class="snowflakes">❄️ 🎄 ❄️</div>
       <h1>Christmas Trivia Buzzer</h1>
-      <p>Open this page on your phone, join with a festive name, and buzz in!</p>
+      <p>Open this page on your phone, join with a festive name, and race to buzz in first!</p>
     </header>
 
     <!-- Login -->
     <div class="login-card" id="login-card">
       <p>Enter your festive name to join the game.</p>
       <input id="username-input" type="text" placeholder="e.g. Rudolph, Elf #1" />
-      <button class="btn btn-primary" id="join-btn">Join the Game</button>
+      <button class="btn btn-primary" id="join-btn">🎮 Join the Game</button>
       <p class="tagline">First player becomes the Game Manager 🎅</p>
 
       <!-- Reset Game button -->
       <button class="btn btn-secondary" id="reset-game-btn" style="margin-top:8px;">
-        Reset Game (host)
+        🔁 Reset Game (host)
       </button>
 
       <p id="login-error" style="color:#ffcccc; font-size:0.85rem; min-height:1em;"></p>
@@ -256,11 +467,14 @@
 
     <!-- Main Game -->
     <div class="main-layout" id="main-layout">
-      <div id="role-banner" style="text-align:center; margin-bottom:8px; font-size:0.9rem;"></div>
+      <div id="role-banner"></div>
       <div class="grid">
         <!-- Question / Buzz -->
         <div class="card">
-          <h2>🎁 Current Question <span id="question-points" style="font-size:0.9rem; opacity:0.8;"></span></h2>
+          <h2>
+            🎁 Current Question
+            <span id="question-points"></span>
+          </h2>
           <div class="question-text" id="question-text">
             Waiting for the manager to start the first question...
           </div>
@@ -268,20 +482,20 @@
           <div class="status" id="status-line"></div>
 
           <div class="buzz-section">
-            <button class="btn btn-secondary buzz-btn" id="buzz-btn" disabled>Buzz In!</button>
+            <button class="btn btn-secondary buzz-btn" id="buzz-btn" disabled>🛎️ Buzz In!</button>
           </div>
 
-          <div id="toast" class="toast"></div>
+          <div id="toast"></div>
 
           <div class="manager-panel" id="manager-panel" style="display:none;">
             <h3>🎅 Game Manager Controls</h3>
             <div class="manager-buttons">
-              <button class="btn btn-primary" id="start-next-btn">Start / Next Question</button>
-              <button class="btn btn-secondary" id="correct-btn">Correct ✅</button>
-              <button class="btn btn-secondary" id="incorrect-btn">Incorrect ❌</button>
-              <button class="btn btn-secondary" id="skip-btn">Skip ⏭️</button>
+              <button class="btn btn-primary" id="start-next-btn">▶️ Start / Next Question</button>
+              <button class="btn btn-secondary" id="correct-btn">✅ Correct</button>
+              <button class="btn btn-secondary" id="incorrect-btn">❌ Incorrect</button>
+              <button class="btn btn-secondary" id="skip-btn">⏭️ Skip</button>
             </div>
-            <div style="font-size:0.85rem;">
+            <div style="font-size:0.85rem; text-align:left;">
               <strong>Answer Key:</strong>
               <div id="manager-answer-key" style="margin-top:4px; font-style:italic;"></div>
             </div>
@@ -293,11 +507,11 @@
           <h2>🎄 Scoreboard</h2>
           <ul class="scoreboard-list" id="scoreboard"></ul>
           <div class="game-ideas">
-            <strong>Built-in:</strong>
+            <strong>Bonus fun:</strong>
             <ul>
-              <li>👑 Leader gets a crown.</li>
-              <li>🔥 2+ correct in a row = streak.</li>
-              <li>🎁 5+ points earns a gift badge.</li>
+              <li>👑 Leader wears the crown each round.</li>
+              <li>🔥 2+ correct in a row = "On Fire" streak.</li>
+              <li>🎁 5+ points earns a "Christmas Legend" award.</li>
             </ul>
           </div>
         </div>
@@ -310,25 +524,23 @@
 <!-- Buzz overlay (shown when someone buzzes in) -->
 <div id="buzz-overlay" class="buzz-overlay">
   <div class="buzz-overlay-content">
-    <h2 id="buzz-overlay-heading">Someone buzzed in!</h2>
+    <h2 id="buzz-overlay-heading">🎄 Buzz!</h2>
     <p id="buzz-overlay-text"></p>
 
     <!-- Manager-only controls on the popup -->
     <div id="buzz-manager-controls" style="margin-top:16px; display:none;">
       <p style="font-size:0.85rem; margin-bottom:8px;">Manager: mark this answer.</p>
       <div class="manager-buttons" style="justify-content:center;">
-        <button class="btn btn-secondary" id="overlay-correct-btn">Correct ✅</button>
-        <button class="btn btn-secondary" id="overlay-incorrect-btn">Incorrect ❌</button>
-        <button class="btn btn-secondary" id="overlay-skip-btn">Skip ⏭️</button>
-        <button class="btn btn-primary" id="overlay-next-btn">Next Question ▶️</button>
+        <button class="btn btn-secondary" id="overlay-correct-btn">✅ Correct</button>
+        <button class="btn btn-secondary" id="overlay-incorrect-btn">❌ Incorrect</button>
+        <button class="btn btn-secondary" id="overlay-skip-btn">⏭️ Skip</button>
+        <button class="btn btn-primary" id="overlay-next-btn">▶️ Next Question</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 🎄 Christmas sound effects will be loaded dynamically -->
-
-<!-- Firebase (modular SDK) -->
+<!-- Firebase (modular SDK) + game logic -->
 <script type="module">
   const firebaseConfig = {
     apiKey: "AIzaSyBLzGCQZ5MlMlUbC8R7nSyft5TZt7ne8vw",
@@ -412,7 +624,7 @@
     questionEndsAt: null
   };
   let timerInterval = null;
-  let lastResponderId = null; // for detecting new buzzes
+  let lastResponderId = null;
 
   // ---- Helpers ----
   function genId() {
@@ -435,20 +647,16 @@
 
   function playRandomSound(soundType) {
     if (!soundGroups[soundType]) return;
-    
+
     const soundFiles = soundGroups[soundType];
     const randomIndex = Math.floor(Math.random() * soundFiles.length);
     const selectedSound = soundFiles[randomIndex];
-    
+
     try {
       const audio = new Audio(`sounds/${selectedSound}`);
       audio.currentTime = 0;
-      audio.play().catch(() => {
-        // ignore audio errors - user might need to interact first
-      });
-    } catch (e) {
-      // ignore audio errors
-    }
+      audio.play().catch(() => {});
+    } catch (e) {}
   }
 
   function showBuzzOverlay(responderName) {
@@ -476,7 +684,6 @@
       gameState.players &&
       gameState.players[gameState.currentResponderId];
 
-    // Pause timer only if there is a valid responder
     if (hasRealResponder) {
       const p = gameState.players[gameState.currentResponderId];
       const name = p ? p.name : "A player";
@@ -509,8 +716,8 @@
     // Role
     isManager = gameState.managerId === myId;
     roleBanner.textContent = isManager
-      ? "🎅 You are the Game Manager. Start questions and mark answers."
-      : "🛎️ You are a Player. Buzz in when you know it!";
+      ? "You are the Game Manager. Start questions and mark answers."
+      : "You are a Player. Buzz in when you know it!";
     managerPanel.style.display = isManager ? "block" : "none";
 
     // Question
@@ -535,7 +742,7 @@
       gameState.players &&
       gameState.players[gameState.currentResponderId];
 
-    // 🔔 Play buzz when a *new* real responder appears
+    // Buzz sound when new responder
     if (hasRealResponder && gameState.currentResponderId !== lastResponderId) {
       playRandomSound('buzz');
       lastResponderId = gameState.currentResponderId;
@@ -544,7 +751,7 @@
       lastResponderId = null;
     }
 
-    // Status / buzz availability & overlay
+    // Status / Buzz & overlay
     if (!gameState.questionActive) {
       statusLineEl.textContent = "No active question. Waiting for manager...";
       buzzBtn.disabled = true;
@@ -585,6 +792,8 @@
       const leaderId = playersArray[0].id;
       playersArray.forEach(p => {
         const li = document.createElement("li");
+        if (p.id === myId) li.classList.add("me");
+
         const left = document.createElement("div");
         left.className = "score-name";
         const nameSpan = document.createElement("span");
@@ -751,7 +960,7 @@
       current.players = current.players || {};
       const p = current.players[responderId];
       if (p) p.streak = 0;
-      current.currentResponderId = null; // reopen buzzing
+      current.currentResponderId = null;
       return current;
     });
     hideBuzzOverlay();
