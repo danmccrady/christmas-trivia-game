@@ -1235,6 +1235,8 @@
   let lastGameOverState = false;
   let winnerOverlayDismissed = false;
   let hasRenderedGameState = false;
+  const PLAYER_COOKIE_NAME = "ctg_session";
+  const PLAYER_COOKIE_MAX_AGE_SECONDS = 6 * 60 * 60; // 6 hours
 
   const wizardMeta = {
     mode: {
@@ -1330,6 +1332,49 @@
     if (step === "host") ensureHostCode();
   }
 
+  function persistPlayerSessionCookie({ playerId, playerName, gameCode }) {
+    if (!playerId || !gameCode) return;
+    const payload = {
+      playerId,
+      playerName: playerName || "",
+      gameCode,
+      expiresAt: Date.now() + PLAYER_COOKIE_MAX_AGE_SECONDS * 1000
+    };
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    let cookie = `${PLAYER_COOKIE_NAME}=${encoded}; path=/; max-age=${PLAYER_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
+    if (window.location.protocol === "https:") {
+      cookie += "; Secure";
+    }
+    document.cookie = cookie;
+  }
+
+  function readPlayerSessionCookie() {
+    const cookies = document.cookie ? document.cookie.split('; ') : [];
+    const entry = cookies.find((row) => row.startsWith(`${PLAYER_COOKIE_NAME}=`));
+    if (!entry) return null;
+    try {
+      const encoded = entry.split('=')[1];
+      const payload = JSON.parse(decodeURIComponent(encoded));
+      if (!payload?.playerId || !payload?.gameCode) {
+        clearPlayerSessionCookie();
+        return null;
+      }
+      if (payload.expiresAt && payload.expiresAt < Date.now()) {
+        clearPlayerSessionCookie();
+        return null;
+      }
+      return payload;
+    } catch (err) {
+      console.warn("Unable to parse player cookie", err);
+      clearPlayerSessionCookie();
+      return null;
+    }
+  }
+
+  function clearPlayerSessionCookie() {
+    document.cookie = `${PLAYER_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
+  }
+
   async function leaveGameAndReturnHome({ preserveName = true, toastMessage = "" } = {}) {
     const playerRef = myId ? roomRef(`players/${myId}`) : null;
     try {
@@ -1339,6 +1384,8 @@
     } catch (err) {
       console.warn("Unable to remove player while leaving", err);
     }
+
+    clearPlayerSessionCookie();
 
     if (unsubscribeGame) {
       unsubscribeGame();
@@ -1401,6 +1448,35 @@
     const path = getRoomPath(subPath);
     if (!path) return null;
     return ref(db, path);
+  }
+
+  async function upsertPlayerRecord(playerId, playerName) {
+    const playerRef = roomRef(`players/${playerId}`);
+    if (!playerRef) return null;
+    const now = Date.now();
+    await runTransaction(playerRef, (current) => {
+      if (!current) {
+        return {
+          name: playerName || "Player",
+          score: 0,
+          streak: 0,
+          connected: true,
+          lastSeen: now
+        };
+      }
+      current.name = playerName || current.name || "Player";
+      if (current.score == null) current.score = 0;
+      if (current.streak == null) current.streak = 0;
+      current.connected = true;
+      current.lastSeen = now;
+      return current;
+    });
+    try {
+      await onDisconnect(playerRef).update({ connected: false, lastSeen: Date.now() });
+    } catch (err) {
+      console.warn("Unable to set disconnect handler", err);
+    }
+    return playerRef;
   }
 
   function subscribeToGame(code) {
@@ -1540,6 +1616,7 @@
   }
 
   function handleAutoJoinFromUrl() {
+    if (myId) return;
     if (!urlGameParam) return;
     const formatted = formatGameCode(urlGameParam);
     if (!formatted) return;
@@ -1557,6 +1634,43 @@
       }, 400);
     } else {
       showToast(`Invite ready for ${formatted}. Enter your name to join.`);
+    }
+  }
+
+  async function attemptCookieRestore() {
+    const session = readPlayerSessionCookie();
+    if (!session) return;
+    try {
+      wizardChoice = "join";
+      setWizardStep("join");
+      const formattedCode = formatGameCode(session.gameCode);
+      if (gameCodeInput && formattedCode) {
+        gameCodeInput.value = formattedCode;
+        updateInviteState();
+      }
+      if (usernameInput && session.playerName) {
+        usernameInput.value = session.playerName;
+      }
+      if (formattedCode) {
+        subscribeToGame(formattedCode);
+      }
+      myId = session.playerId;
+      myName = (session.playerName || "").substring(0, 20);
+      if (myName) {
+        localStorage.setItem("festiveName", myName);
+      }
+      await upsertPlayerRecord(myId, myName);
+      persistPlayerSessionCookie({
+        playerId: myId,
+        playerName: myName,
+        gameCode: formattedCode
+      });
+      if (loginCard) loginCard.style.display = "none";
+      if (mainLayout) mainLayout.style.display = "block";
+      showToast(`Welcome back! Rejoining ${formattedCode}.`);
+    } catch (err) {
+      console.error("Auto-restore failed", err);
+      clearPlayerSessionCookie();
     }
   }
 
@@ -1971,13 +2085,11 @@
     window.history.replaceState({}, "", url);
     updateInviteState();
 
-    const playerRef = roomRef(`players/${myId}`);
+    const playerRef = await upsertPlayerRecord(myId, myName);
     if (!playerRef) {
       loginError.textContent = "Could not find that game room. Try again.";
       return;
     }
-    await set(playerRef, { name: myName, score: 0, streak: 0 });
-    onDisconnect(playerRef).remove();
     const roomBaseRef = roomRef();
     if (roomBaseRef) {
       await update(roomBaseRef, { updatedAt: Date.now() });
@@ -1985,6 +2097,12 @@
 
     const managerRef = roomRef("managerId");
     await runTransaction(managerRef, (current) => current || myId);
+
+    persistPlayerSessionCookie({
+      playerId: myId,
+      playerName: myName,
+      gameCode: selectedCode
+    });
 
     loginCard.style.display = "none";
     mainLayout.style.display = "block";
@@ -2215,6 +2333,7 @@
   overlaySkipBtn.addEventListener("click", handleSkip);
   winnerCloseBtn?.addEventListener("click", () => hideWinnerOverlay(true));
 
+  attemptCookieRestore();
   initLobbyListener();
   handleAutoJoinFromUrl();
 </script>
