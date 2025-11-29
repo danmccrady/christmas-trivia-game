@@ -303,49 +303,8 @@
     runTransaction
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // ---- Game questions (same on all clients) ----
-  const questions = [
-    {
-      text: 'In the song "Jingle Bells," what kind of sleigh is mentioned?',
-      answer: 'A one-horse open sleigh',
-      points: 1
-    },
-    {
-      text: 'What is the name of the snowman who comes to life in a classic Christmas song?',
-      answer: 'Frosty the Snowman',
-      points: 1
-    },
-    {
-      text: 'In which city is the famous Rockefeller Center Christmas tree located?',
-      answer: 'New York City',
-      points: 1
-    },
-    {
-      text: 'What red-nosed reindeer helps guide Santa’s sleigh?',
-      answer: 'Rudolph',
-      points: 1
-    },
-    {
-      text: 'In the movie "Home Alone", where is the McCallister family traveling for Christmas?',
-      answer: 'Paris',
-      points: 2
-    },
-    {
-      text: 'What traditional Christmas decoration is actually a parasitic plant?',
-      answer: 'Mistletoe',
-      points: 1
-    },
-    {
-      text: 'In "How the Grinch Stole Christmas", what is the name of the Grinch’s dog?',
-      answer: 'Max',
-      points: 1
-    },
-    {
-      text: 'Which popular Christmas beverage is also called "milk punch"?',
-      answer: 'Eggnog',
-      points: 1
-    }
-  ];
+  // Import questions from separate file
+  import { questions } from './questions.js';
 
   // ---- Firebase init ----
   const app = initializeApp(firebaseConfig);
