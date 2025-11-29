@@ -810,6 +810,48 @@
       text-align: left;
     }
 
+    /* WINNER OVERLAY */
+    .winner-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(5, 4, 25, 0.92), rgba(4, 12, 20, 0.95));
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1200;
+      backdrop-filter: blur(10px);
+    }
+
+    .winner-overlay-content {
+      background: linear-gradient(135deg, rgba(59, 8, 37, 0.96), rgba(10, 51, 32, 0.94));
+      border-radius: 30px;
+      padding: 30px 26px 28px;
+      border: 2px solid rgba(255, 215, 0, 0.4);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+      text-align: center;
+      max-width: 520px;
+      width: min(92%, 520px);
+    }
+
+    .winner-overlay h2 {
+      margin: 0 0 10px;
+      font-size: 1.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .winner-overlay p {
+      margin: 0 auto 18px;
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 380px;
+    }
+
+    .winner-overlay strong {
+      color: #fffbea;
+    }
+
     .buzz-overlay-answer-label {
       font-size: 0.85rem;
       text-transform: uppercase;
@@ -1059,6 +1101,15 @@
   </div>
 </div>
 
+<!-- Winner overlay (shown when game ends) -->
+<div id="winner-overlay" class="winner-overlay">
+  <div class="winner-overlay-content">
+    <h2>🏆 Snowfall Champion</h2>
+    <p id="winner-overlay-message">A champion will appear soon…</p>
+    <button class="btn btn-primary" id="winner-close-btn" type="button">🎉 Spread the Cheer</button>
+  </div>
+</div>
+
 <!-- Firebase (modular SDK) + game logic -->
 <script type="module">
   const firebaseConfig = {
@@ -1144,13 +1195,17 @@
   const overlayIncorrectBtn = document.getElementById("overlay-incorrect-btn");
   const overlaySkipBtn = document.getElementById("overlay-skip-btn");
   const overlayNextBtn = document.getElementById("overlay-next-btn");
+  const winnerOverlay = document.getElementById("winner-overlay");
+  const winnerOverlayMessage = document.getElementById("winner-overlay-message");
+  const winnerCloseBtn = document.getElementById("winner-close-btn");
 
   // 🎄 Sound system with multiple files per action
   const soundGroups = {
     buzz: ['jingle-buzz-1.mp3', 'jingle-buzz-2.mp3'],
     correct: ['santa-correct-1.mp3', 'santa-correct-2.mp3', 'santa-correct-3.mp3', 'santa-correct-4.mp3'],
     incorrect: ['santa-sorry-1.mp3', 'santa-sorry-2.mp3', 'santa-sorry-3.mp3', 'santa-sorry-4.mp3'],
-    next: ['chime-1.mp3', 'chime-2.mp3', 'chime-3.mp3', 'chime-4.mp3']
+    next: ['chime-1.mp3', 'chime-2.mp3', 'chime-3.mp3', 'chime-4.mp3'],
+    winner: ['chime-3.mp3', 'chime-4.mp3']
   };
 
   // ---- Local state ----
@@ -1165,7 +1220,10 @@
     currentResponderId: null,
     questionEndsAt: null,
     gameOver: false,
-    winnerId: null
+    winnerId: null,
+    winnerName: null,
+    winnerScore: 0,
+    finalStandings: null
   });
   let gameState = getDefaultGameState();
   let timerInterval = null;
@@ -1174,6 +1232,9 @@
   let unsubscribeLobby = null;
   let wizardStepState = "mode";
   let wizardChoice = null;
+  let lastGameOverState = false;
+  let winnerOverlayDismissed = false;
+  let hasRenderedGameState = false;
 
   const wizardMeta = {
     mode: {
@@ -1269,6 +1330,67 @@
     if (step === "host") ensureHostCode();
   }
 
+  async function leaveGameAndReturnHome({ preserveName = true, toastMessage = "" } = {}) {
+    const playerRef = myId ? roomRef(`players/${myId}`) : null;
+    try {
+      if (playerRef) {
+        await remove(playerRef);
+      }
+    } catch (err) {
+      console.warn("Unable to remove player while leaving", err);
+    }
+
+    if (unsubscribeGame) {
+      unsubscribeGame();
+      unsubscribeGame = null;
+    }
+
+    gameRef = null;
+    currentGameCode = null;
+    gameState = getDefaultGameState();
+    hasRenderedGameState = false;
+    lastGameOverState = false;
+    winnerOverlayDismissed = false;
+    renderGame();
+    hideBuzzOverlay();
+    hideWinnerOverlay();
+
+    if (mainLayout) mainLayout.style.display = "none";
+    if (loginCard) loginCard.style.display = "block";
+    wizardChoice = null;
+    wizardStepState = "mode";
+    setWizardStep("mode");
+
+    if (gameCodeInput) {
+      gameCodeInput.value = "";
+      updateInviteState();
+    }
+    if (wizardCodeDisplay) {
+      wizardCodeDisplay.textContent = "----";
+    }
+
+    if (usernameInput) {
+      if (preserveName && myName) {
+        usernameInput.value = myName;
+      } else if (!preserveName) {
+        usernameInput.value = "";
+        myName = null;
+        localStorage.removeItem("festiveName");
+      }
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("game");
+    window.history.replaceState({}, "", url);
+
+    myId = null;
+    isManager = false;
+
+    if (toastMessage) {
+      showToast(toastMessage);
+    }
+  }
+
   function getRoomPath(subPath = "") {
     if (!currentGameCode) return null;
     const base = `games/${currentGameCode}`;
@@ -1296,6 +1418,10 @@
       updateInviteState();
     }
     gameState = getDefaultGameState();
+    hasRenderedGameState = false;
+    lastGameOverState = false;
+    winnerOverlayDismissed = false;
+    hideWinnerOverlay();
     renderGame();
     unsubscribeGame = onValue(gameRef, (snap) => {
       const val = snap.val() || getDefaultGameState();
@@ -1548,6 +1674,61 @@
     buzzOverlay.style.display = "flex";
   }
 
+  function getWinnerDetails() {
+    if (!gameState.gameOver) return null;
+    const standings = getFinalStandingsArray();
+    if (standings && standings.length) {
+      const top = standings[0];
+      return {
+        name: top?.name || gameState.winnerName || "A mystery elf",
+        score: top?.score ?? gameState.winnerScore ?? 0
+      };
+    }
+    if (gameState.winnerId && gameState.players && gameState.players[gameState.winnerId]) {
+      const data = gameState.players[gameState.winnerId];
+      return {
+        name: data?.name || gameState.winnerName || "A mystery elf",
+        score: data?.score ?? gameState.winnerScore ?? 0
+      };
+    }
+    if (gameState.winnerName) {
+      return {
+        name: gameState.winnerName,
+        score: gameState.winnerScore || 0
+      };
+    }
+    return null;
+  }
+
+  function getFinalStandingsArray() {
+    const standings = gameState.finalStandings;
+    if (!standings) return null;
+    if (Array.isArray(standings)) return standings;
+    if (typeof standings === "object") return Object.values(standings);
+    return null;
+  }
+
+  function showWinnerOverlayUI(details) {
+    if (!winnerOverlay || !winnerOverlayMessage) return;
+    const name = details?.name || "A champion";
+    const score = details?.score ?? 0;
+    winnerOverlayMessage.innerHTML = "";
+    const nameStrong = document.createElement("strong");
+    nameStrong.textContent = name;
+    const midText = document.createTextNode(" wins the night with ");
+    const scoreStrong = document.createElement("strong");
+    scoreStrong.textContent = `${score} point${score === 1 ? "" : "s"}`;
+    const endText = document.createTextNode("!");
+    winnerOverlayMessage.append(nameStrong, midText, scoreStrong, endText);
+    winnerOverlay.style.display = "flex";
+  }
+
+  function hideWinnerOverlay(manual = false) {
+    if (!winnerOverlay) return;
+    winnerOverlay.style.display = "none";
+    if (manual) winnerOverlayDismissed = true;
+  }
+
   function hideBuzzOverlay() {
     buzzOverlay.style.display = "none";
     buzzManagerControls.style.display = "none";
@@ -1640,7 +1821,11 @@
     }
 
     // Status / Buzz & overlay
-    if (!gameState.questionActive) {
+    if (gameState.gameOver) {
+      statusLineEl.textContent = "Game over! Congrats to the champion.";
+      buzzBtn.disabled = true;
+      hideBuzzOverlay();
+    } else if (!gameState.questionActive) {
       statusLineEl.textContent = "No active question. Waiting for manager...";
       buzzBtn.disabled = true;
       hideBuzzOverlay();
@@ -1664,21 +1849,35 @@
     }
 
     // Scoreboard
-    const playersArray = Object.entries(gameState.players || {}).map(([id, p]) => ({
+    const livePlayers = Object.entries(gameState.players || {}).map(([id, p]) => ({
       id,
-      ...p
+      ...(p || {})
     }));
-    playersArray.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return a.name.localeCompare(b.name);
+
+    let scoreboardArray = livePlayers;
+    const finalStandings = getFinalStandingsArray();
+    if (gameState.gameOver && finalStandings && finalStandings.length) {
+      scoreboardArray = finalStandings.map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        score: entry.score,
+        streak: entry.streak || 0
+      }));
+    }
+
+    scoreboardArray.sort((a, b) => {
+      if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
+      const nameA = (a.name || "").toString();
+      const nameB = (b.name || "").toString();
+      return nameA.localeCompare(nameB);
     });
 
     scoreboardEl.innerHTML = "";
-    if (!playersArray.length) {
+    if (!scoreboardArray.length) {
       scoreboardEl.innerHTML = "<li>No players yet.</li>";
     } else {
-      const leaderId = playersArray[0].id;
-      playersArray.forEach(p => {
+      const leaderId = scoreboardArray[0].id;
+      scoreboardArray.forEach(p => {
         const li = document.createElement("li");
         if (p.id === myId) li.classList.add("me");
 
@@ -1691,7 +1890,8 @@
           .slice(0, 2)
           .toUpperCase();
         const nameSpan = document.createElement("span");
-        nameSpan.textContent = p.name + (p.id === myId ? " (you)" : "");
+        const displayName = p.name || "Mystery Elf";
+        nameSpan.textContent = displayName + (p.id === myId ? " (you)" : "");
         left.appendChild(avatar);
         left.appendChild(nameSpan);
 
@@ -1715,13 +1915,31 @@
         }
 
         const right = document.createElement("div");
-        right.textContent = `${p.score} pts`;
+        right.textContent = `${p.score || 0} pts`;
 
         li.appendChild(left);
         li.appendChild(right);
         scoreboardEl.appendChild(li);
       });
     }
+
+    const isGameOver = Boolean(gameState.gameOver);
+    if (isGameOver) {
+      const winnerDetails = getWinnerDetails();
+      if (!winnerOverlayDismissed && winnerDetails) {
+        showWinnerOverlayUI(winnerDetails);
+      }
+    } else {
+      winnerOverlayDismissed = false;
+      hideWinnerOverlay();
+    }
+
+    if (isGameOver && !lastGameOverState && hasRenderedGameState) {
+      playRandomSound('winner');
+    }
+
+    lastGameOverState = isGameOver;
+    hasRenderedGameState = true;
 
     updateTimer();
   }
@@ -1817,7 +2035,10 @@
           questionEndsAt: now + 30000,
           updatedAt: now,
           gameOver: false,
-          winnerId: null
+          winnerId: null,
+          winnerName: null,
+          winnerScore: 0,
+          finalStandings: null
         };
         return current;
       }
@@ -1830,6 +2051,9 @@
         current.updatedAt = now;
         current.gameOver = false;
         current.winnerId = null;
+        current.winnerName = null;
+        current.winnerScore = 0;
+        current.finalStandings = null;
         return current;
       }
 
@@ -1841,13 +2065,16 @@
         current.updatedAt = now;
         current.gameOver = false;
         current.winnerId = null;
+        current.winnerName = null;
+        current.winnerScore = 0;
+        current.finalStandings = null;
         return current;
       }
 
       current.questionActive = false;
       current.currentResponderId = null;
       current.questionEndsAt = null;
-       current.updatedAt = now;
+      current.updatedAt = now;
       return current;
     });
     hideBuzzOverlay();
@@ -1874,6 +2101,9 @@
       current.updatedAt = now;
       current.gameOver = false;
       current.winnerId = null;
+      current.winnerName = null;
+      current.winnerScore = 0;
+      current.finalStandings = null;
       return current;
     });
     hideBuzzOverlay();
@@ -1893,6 +2123,9 @@
       current.updatedAt = now;
       current.gameOver = false;
       current.winnerId = null;
+      current.winnerName = null;
+      current.winnerScore = 0;
+      current.finalStandings = null;
       return current;
     });
     hideBuzzOverlay();
@@ -1910,6 +2143,9 @@
       current.updatedAt = now;
       current.gameOver = false;
       current.winnerId = null;
+      current.winnerName = null;
+      current.winnerScore = 0;
+      current.finalStandings = null;
       return current;
     });
     hideBuzzOverlay();
@@ -1925,7 +2161,8 @@
       const playerEntries = Object.entries(current.players).map(([id, data]) => ({
         id,
         name: data?.name || "Player",
-        score: data?.score || 0
+        score: data?.score || 0,
+        streak: data?.streak || 0
       }));
       playerEntries.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
@@ -1934,6 +2171,9 @@
       const winner = playerEntries[0];
       current.gameOver = true;
       current.winnerId = winner ? winner.id : null;
+      current.winnerName = winner ? winner.name : null;
+      current.winnerScore = winner ? winner.score : 0;
+      current.finalStandings = playerEntries;
       current.questionActive = false;
       current.currentResponderId = null;
       current.questionEndsAt = null;
@@ -1941,7 +2181,12 @@
       return current;
     });
     hideBuzzOverlay();
-    playRandomSound('next');
+    winnerOverlayDismissed = false;
+    playRandomSound('winner');
+    await leaveGameAndReturnHome({
+      preserveName: true,
+      toastMessage: "Game wrapped! You're back in the lobby."
+    });
   }
 
   // ---- Buzz ----
@@ -1968,6 +2213,7 @@
   overlayCorrectBtn.addEventListener("click", handleCorrect);
   overlayIncorrectBtn.addEventListener("click", handleIncorrect);
   overlaySkipBtn.addEventListener("click", handleSkip);
+  winnerCloseBtn?.addEventListener("click", () => hideWinnerOverlay(true));
 
   initLobbyListener();
   handleAutoJoinFromUrl();
