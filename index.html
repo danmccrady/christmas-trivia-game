@@ -197,6 +197,35 @@
       color: rgba(255,255,255,0.8);
       margin-top: 4px;
     }
+
+    /* BIG overlay when someone buzzes in */
+    .buzz-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .buzz-overlay-content {
+      background: radial-gradient(circle at top, #1b3a1b, #020b08);
+      border-radius: 20px;
+      padding: 24px 32px;
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 50px rgba(0,0,0,0.8);
+      text-align: center;
+    }
+    .buzz-overlay-content h2 {
+      margin: 0 0 8px;
+      font-size: 1.6rem;
+      color: var(--gold);
+    }
+    .buzz-overlay-content p {
+      margin: 4px 0 0;
+      font-size: 1rem;
+      color: #fefefe;
+    }
   </style>
 </head>
 <body>
@@ -215,7 +244,7 @@
       <button class="btn btn-primary" id="join-btn">Join the Game</button>
       <p class="tagline">First player becomes the Game Manager 🎅</p>
 
-      <!-- NEW: Reset Game button -->
+      <!-- Reset Game button -->
       <button class="btn btn-secondary" id="reset-game-btn" style="margin-top:8px;">
         Reset Game (host)
       </button>
@@ -276,13 +305,20 @@
   </div>
 </div>
 
+<!-- Buzz overlay (shown when someone buzzes in) -->
+<div id="buzz-overlay" class="buzz-overlay">
+  <div class="buzz-overlay-content">
+    <h2 id="buzz-overlay-heading">Someone buzzed in!</h2>
+    <p id="buzz-overlay-text"></p>
+  </div>
+</div>
+
 <!-- Firebase (modular SDK) -->
 <script type="module">
   // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyBLzGCQZ5MlMlUbC8R7nSyft5TZt7ne8vw",
     authDomain: "christmas-trivia-game.firebaseapp.com",
-    // FIXED: correct key name + URL (no console URL)
     databaseURL: "https://christmas-trivia-game-default-rtdb.firebaseio.com",
     projectId: "christmas-trivia-game",
     storageBucket: "christmas-trivia-game.firebasestorage.app",
@@ -336,6 +372,10 @@
   const skipBtn = document.getElementById("skip-btn");
   const managerAnswerKey = document.getElementById("manager-answer-key");
 
+  const buzzOverlay = document.getElementById("buzz-overlay");
+  const buzzOverlayHeading = document.getElementById("buzz-overlay-heading");
+  const buzzOverlayText = document.getElementById("buzz-overlay-text");
+
   // ---- Local state ----
   let myId = null;
   let myName = null;
@@ -369,12 +409,32 @@
     return questions[gameState.questionIndex] || null;
   }
 
+  function showBuzzOverlay(responderName) {
+    buzzOverlayHeading.textContent = "🎄 Buzz!";
+    buzzOverlayText.textContent = `${responderName} buzzed in and is answering.`;
+    buzzOverlay.style.display = "flex";
+  }
+
+  function hideBuzzOverlay() {
+    buzzOverlay.style.display = "none";
+  }
+
   function updateTimer() {
     if (timerInterval) clearInterval(timerInterval);
+
+    // Pause timer if someone is answering
+    if (gameState.questionActive && gameState.currentResponderId) {
+      const p = gameState.players[gameState.currentResponderId];
+      const name = p ? p.name : "A player";
+      timerEl.textContent = `⏸️ Timer paused while ${name} answers`;
+      return;
+    }
+
     if (!gameState.questionActive || !gameState.questionEndsAt) {
       timerEl.textContent = "--";
       return;
     }
+
     function tick() {
       const now = Date.now();
       const diff = gameState.questionEndsAt - now;
@@ -415,27 +475,32 @@
       }
     }
 
-    // Status / buzz availability
+    // Status / buzz availability & overlay
     if (!gameState.questionActive) {
       statusLineEl.textContent = "No active question. Waiting for manager...";
       buzzBtn.disabled = true;
+      hideBuzzOverlay();
     } else {
       if (!gameState.currentResponderId) {
         statusLineEl.textContent = "Question is live! Tap Buzz when you know the answer.";
         buzzBtn.disabled = false;
+        hideBuzzOverlay();
       } else if (gameState.currentResponderId === myId) {
         statusLineEl.textContent = "You have the floor. Answer out loud!";
         buzzBtn.disabled = true;
+        const selfName = myName || "You";
+        showBuzzOverlay(selfName);
       } else {
         const responder = gameState.players[gameState.currentResponderId];
         const name = responder ? responder.name : "Another player";
         statusLineEl.textContent = `${name} is answering...`;
         buzzBtn.disabled = true;
+        showBuzzOverlay(name);
       }
     }
 
     // Scoreboard
-    const playersArray = Object.entries(gameState.players).map(([id, p]) => ({
+    const playersArray = Object.entries(gameState.players || {}).map(([id, p]) => ({
       id,
       ...p
     }));
