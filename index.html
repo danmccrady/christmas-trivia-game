@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Christmas Trivia Buzzer (Online)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --red: #b22222;
+      --green: #0b6623;
+      --gold: #ffd700;
+      --bg: #02110f;
+      --card-bg: rgba(255, 255, 255, 0.1);
+      --card-border: rgba(255, 255, 255, 0.3);
+      --text: #fdfdfd;
+    }
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background: radial-gradient(circle at top, #114, var(--bg));
+    }
+    .overlay {
+      min-height: 100vh;
+      background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(0,40,0,0.9));
+      padding: 16px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.1rem;
+      color: var(--gold);
+      text-shadow: 0 0 10px rgba(255,215,0,0.7);
+    }
+    header p {
+      margin: 4px 0 0;
+      font-size: 0.95rem;
+      color: #f0f0f0;
+    }
+    .snowflakes {
+      font-size: 1.3rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.4);
+      margin-bottom: 16px;
+    }
+    .login-card, .main-layout {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.4);
+    }
+    .login-card {
+      max-width: 400px;
+      margin: 40px auto 0;
+      text-align: center;
+    }
+    .login-card input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.4);
+      background: rgba(0,0,0,0.3);
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .btn {
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--red), #ff4d4d);
+      color: #fff;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--green), #1aa34a);
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .btn:active:not(:disabled) {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    .main-layout {
+      display: none;
+      margin-top: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+      gap: 16px;
+    }
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .question-text {
+      font-size: 1.2rem;
+      margin: 8px 0 12px;
+    }
+    .timer {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .status {
+      font-size: 0.9rem;
+      margin-top: 6px;
+      color: #f5f5f5;
+      min-height: 1.2em;
+    }
+    .buzz-section {
+      margin-top: 16px;
+      text-align: center;
+    }
+    .buzz-btn {
+      font-size: 1.1rem;
+      padding: 12px 24px;
+    }
+    .manager-panel {
+      margin-top: 12px;
+      border-top: 1px dashed rgba(255,255,255,0.2);
+      padding-top: 10px;
+      font-size: 0.9rem;
+    }
+    .manager-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .scoreboard-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .scoreboard-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+    }
+    .score-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge {
+      font-size: 0.9rem;
+    }
+    .toast {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: #f8f8f8;
+      min-height: 1.2em;
+    }
+    .game-ideas {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #f5f5f5;
+    }
+    .tagline {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.8);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="overlay">
+  <div class="container">
+    <header>
+      <div class="snowflakes">❄️🎄❄️</div>
+      <h1>Christmas Trivia Buzzer</h1>
+      <p>Open this page on your phone, join with a festive name, and buzz in!</p>
+    </header>
+
+    <!-- Login -->
+    <div class="login-card" id="login-card">
+      <p>Enter your festive name to join the game.</p>
+      <input id="username-input" type="text" placeholder="e.g. Rudolph, Elf #1" />
+      <button class="btn btn-primary" id="join-btn">Join the Game</button>
+      <p class="tagline">First player becomes the Game Manager 🎅</p>
+      <p id="login-error" style="color:#ffcccc; font-size:0.85rem; min-height:1em;"></p>
+    </div>
+
+    <!-- Main Game -->
+    <div class="main-layout" id="main-layout">
+      <div id="role-banner" style="text-align:center; margin-bottom:8px; font-size:0.9rem;"></div>
+      <div class="grid">
+        <!-- Question / Buzz -->
+        <div class="card">
+          <h2>🎁 Current Question <span id="question-points" style="font-size:0.9rem; opacity:0.8;"></span></h2>
+          <div class="question-text" id="question-text">
+            Waiting for the manager to start the first question...
+          </div>
+          <div class="timer" id="timer">--</div>
+          <div class="status" id="status-line"></div>
+
+          <div class="buzz-section">
+            <button class="btn btn-secondary buzz-btn" id="buzz-btn" disabled>Buzz In!</button>
+          </div>
+
+          <div id="toast" class="toast"></div>
+
+          <div class="manager-panel" id="manager-panel" style="display:none;">
+            <h3>🎅 Game Manager Controls</h3>
+            <div class="manager-buttons">
+              <button class="btn btn-primary" id="start-next-btn">Start / Next Question</button>
+              <button class="btn btn-secondary" id="correct-btn">Correct ✅</button>
+              <button class="btn btn-secondary" id="incorrect-btn">Incorrect ❌</button>
+              <button class="btn btn-secondary" id="skip-btn">Skip ⏭️</button>
+            </div>
+            <div style="font-size:0.85rem;">
+              <strong>Answer Key:</strong>
+              <div id="manager-answer-key" style="margin-top:4px; font-style:italic;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="card">
+          <h2>🎄 Scoreboard</h2>
+          <ul class="scoreboard-list" id="scoreboard"></ul>
+          <div class="game-ideas">
+            <strong>Built-in:</strong>
+            <ul>
+              <li>👑 Leader gets a crown.</li>
+              <li>🔥 2+ correct in a row = streak.</li>
+              <li>🎁 5+ points earns a gift badge.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase (modular SDK) -->
+<script type="module">
+  // TODO: paste your Firebase config here:
+  // const firebaseConfig = { ... };
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBLzGCQZ5MlMlUbC8R7nSyft5TZt7ne8vw",
+  authDomain: "christmas-trivia-game.firebaseapp.com",
+  projectId: "christmas-trivia-game",
+  storageBucket: "christmas-trivia-game.firebasestorage.app",
+  messagingSenderId: "303000729988",
+  appId: "1:303000729988:web:0f4c267de48a2a4d5e85d1",
+  measurementId: "G-W2X9RER9C8"
+};
+
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onValue,
+    set,
+    update,
+    remove,
+    onDisconnect,
+    runTransaction
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // ---- Game questions (same on all clients) ----
+  const questions = [
+    {
+      text: 'In the song "Jingle Bells," what kind of sleigh is mentioned?',
+      answer: 'A one-horse open sleigh',
+      points: 1
+    },
+    {
+      text: 'What is the name of the snowman who comes to life in a classic Christmas song?',
+      answer: 'Frosty the Snowman',
+      points: 1
+    },
+    {
+      text: 'In which city is the famous Rockefeller Center Christmas tree located?',
+      answer: 'New York City',
+      points: 1
+    },
+    {
+      text: 'What red-nosed reindeer helps guide Santa’s sleigh?',
+      answer: 'Rudolph',
+      points: 1
+    },
+    {
+      text: 'In the movie "Home Alone", where is the McCallister family traveling for Christmas?',
+      answer: 'Paris',
+      points: 2
+    },
+    {
+      text: 'What traditional Christmas decoration is actually a parasitic plant?',
+      answer: 'Mistletoe',
+      points: 1
+    },
+    {
+      text: 'In "How the Grinch Stole Christmas", what is the name of the Grinch’s dog?',
+      answer: 'Max',
+      points: 1
+    },
+    {
+      text: 'Which popular Christmas beverage is also called "milk punch"?',
+      answer: 'Eggnog',
+      points: 1
+    }
+  ];
+
+  // ---- Firebase init ----
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const gameRef = ref(db, "christmasTriviaGame"); // single game room
+
+  // ---- DOM elements ----
+  const loginCard = document.getElementById("login-card");
+  const mainLayout = document.getElementById("main-layout");
+  const usernameInput = document.getElementById("username-input");
+  const joinBtn = document.getElementById("join-btn");
+  const loginError = document.getElementById("login-error");
+
+  const roleBanner = document.getElementById("role-banner");
+  const questionTextEl = document.getElementById("question-text");
+  const questionPointsEl = document.getElementById("question-points");
+  const timerEl = document.getElementById("timer");
+  const statusLineEl = document.getElementById("status-line");
+  const buzzBtn = document.getElementById("buzz-btn");
+  const scoreboardEl = document.getElementById("scoreboard");
+  const toastEl = document.getElementById("toast");
+
+  const managerPanel = document.getElementById("manager-panel");
+  const startNextBtn = document.getElementById("start-next-btn");
+  const correctBtn = document.getElementById("correct-btn");
+  const incorrectBtn = document.getElementById("incorrect-btn");
+  const skipBtn = document.getElementById("skip-btn");
+  const managerAnswerKey = document.getElementById("manager-answer-key");
+
+  // ---- Local state ----
+  let myId = null;
+  let myName = null;
+  let isManager = false;
+  let gameState = {
+    players: {},
+    managerId: null,
+    questionIndex: -1,
+    questionActive: false,
+    currentResponderId: null,
+    questionEndsAt: null
+  };
+  let timerInterval = null;
+
+  // ---- Helpers ----
+  function genId() {
+    return "p_" + Math.random().toString(36).slice(2);
+  }
+
+  function showToast(msg) {
+    toastEl.textContent = msg || "";
+    if (msg) {
+      setTimeout(() => {
+        if (toastEl.textContent === msg) toastEl.textContent = "";
+      }, 4000);
+    }
+  }
+
+  function getCurrentQuestion() {
+    if (gameState.questionIndex == null || gameState.questionIndex < 0) return null;
+    return questions[gameState.questionIndex] || null;
+  }
+
+  function updateTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    if (!gameState.questionActive || !gameState.questionEndsAt) {
+      timerEl.textContent = "--";
+      return;
+    }
+    function tick() {
+      const now = Date.now();
+      const diff = gameState.questionEndsAt - now;
+      if (diff <= 0) {
+        timerEl.textContent = "0s (time up)";
+        buzzBtn.disabled = true;
+        clearInterval(timerInterval);
+        return;
+      }
+      const seconds = Math.ceil(diff / 1000);
+      timerEl.textContent = seconds + "s remaining";
+    }
+    tick();
+    timerInterval = setInterval(tick, 300);
+  }
+
+  function renderGame() {
+    // Role
+    isManager = gameState.managerId === myId;
+    roleBanner.textContent = isManager
+      ? "🎅 You are the Game Manager. Start questions and mark answers."
+      : "🛎️ You are a Player. Buzz in when you know it!";
+    managerPanel.style.display = isManager ? "block" : "none";
+
+    // Question
+    const q = getCurrentQuestion();
+    if (!q) {
+      questionTextEl.textContent = "Waiting for the manager to start the first question...";
+      questionPointsEl.textContent = "";
+      managerAnswerKey.textContent = "";
+    } else {
+      questionTextEl.textContent = q.text;
+      questionPointsEl.textContent = `(${q.points} pt${q.points > 1 ? "s" : ""})`;
+      if (isManager) {
+        managerAnswerKey.textContent = q.answer;
+      } else {
+        managerAnswerKey.textContent = "(manager only)";
+      }
+    }
+
+    // Status / buzz availability
+    if (!gameState.questionActive) {
+      statusLineEl.textContent = "No active question. Waiting for manager...";
+      buzzBtn.disabled = true;
+    } else {
+      if (!gameState.currentResponderId) {
+        statusLineEl.textContent = "Question is live! Tap Buzz when you know the answer.";
+        buzzBtn.disabled = false;
+      } else if (gameState.currentResponderId === myId) {
+        statusLineEl.textContent = "You have the floor. Answer out loud!";
+        buzzBtn.disabled = true;
+      } else {
+        const responder = gameState.players[gameState.currentResponderId];
+        const name = responder ? responder.name : "Another player";
+        statusLineEl.textContent = `${name} is answering...`;
+        buzzBtn.disabled = true;
+      }
+    }
+
+    // Scoreboard
+    const playersArray = Object.entries(gameState.players).map(([id, p]) => ({
+      id,
+      ...p
+    }));
+    playersArray.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.name.localeCompare(b.name);
+    });
+
+    scoreboardEl.innerHTML = "";
+    if (!playersArray.length) {
+      scoreboardEl.innerHTML = "<li>No players yet.</li>";
+    } else {
+      const leaderId = playersArray[0].id;
+      playersArray.forEach(p => {
+        const li = document.createElement("li");
+        const left = document.createElement("div");
+        left.className = "score-name";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = p.name + (p.id === myId ? " (you)" : "");
+        left.appendChild(nameSpan);
+
+        if (p.id === leaderId && p.score > 0) {
+          const crown = document.createElement("span");
+          crown.className = "badge";
+          crown.textContent = "👑";
+          left.appendChild(crown);
+        }
+        if (p.streak >= 2) {
+          const flame = document.createElement("span");
+          flame.className = "badge";
+          flame.textContent = "🔥";
+          left.appendChild(flame);
+        }
+        if (p.score >= 5) {
+          const gift = document.createElement("span");
+          gift.className = "badge";
+          gift.textContent = "🎁";
+          left.appendChild(gift);
+        }
+
+        const right = document.createElement("div");
+        right.textContent = `${p.score} pts`;
+
+        li.appendChild(left);
+        li.appendChild(right);
+        scoreboardEl.appendChild(li);
+      });
+    }
+
+    updateTimer();
+  }
+
+  // ---- Firebase listeners ----
+  onValue(gameRef, (snap) => {
+    const val = snap.val();
+    gameState = val || {
+      players: {},
+      managerId: null,
+      questionIndex: -1,
+      questionActive: false,
+      currentResponderId: null,
+      questionEndsAt: null
+    };
+    if (!gameState.players) gameState.players = {};
+    renderGame();
+  });
+
+  // ---- Join game ----
+  joinBtn.addEventListener("click", async () => {
+    const name = usernameInput.value.trim();
+    if (!name) {
+      loginError.textContent = "Enter a festive name.";
+      return;
+    }
+    loginError.textContent = "";
+    myId = genId();
+    myName = name.substring(0, 20);
+
+    const playerRef = ref(db, `christmasTriviaGame/players/${myId}`);
+    await set(playerRef, { name: myName, score: 0, streak: 0 });
+    onDisconnect(playerRef).remove();
+
+    // First player becomes manager (transaction so only first wins)
+    const managerRef = ref(db, "christmasTriviaGame/managerId");
+    await runTransaction(managerRef, (current) => current || myId);
+
+    loginCard.style.display = "none";
+    mainLayout.style.display = "block";
+  });
+
+  usernameInput.addEventListener("keyup", (e) => {
+    if (e.key === "Enter") joinBtn.click();
+  });
+
+  // ---- Buzz ----
+  buzzBtn.addEventListener("click", async () => {
+    if (!myId) return;
+    buzzBtn.disabled = true;
+
+    await runTransaction(ref(db, "christmasTriviaGame"), (current) => {
+      if (!current || !current.questionActive) return current;
+      if (current.currentResponderId) return current; // someone already answering
+      current.currentResponderId = myId;
+      return current;
+    });
+  });
+
+  // ---- Manager actions ----
+  startNextBtn.addEventListener("click", async () => {
+    if (!isManager) return;
+    await runTransaction(gameRef, (current) => {
+      if (!current) {
+        current = {
+          players: {},
+          managerId: myId,
+          questionIndex: 0,
+          questionActive: true,
+          currentResponderId: null,
+          questionEndsAt: Date.now() + 30000
+        };
+        return current;
+      }
+      const nextIndex =
+        current.questionIndex == null
+          ? 0
+          : (current.questionIndex + 1) % questions.length;
+      current.questionIndex = nextIndex;
+      current.questionActive = true;
+      current.currentResponderId = null;
+      current.questionEndsAt = Date.now() + 30000;
+      return current;
+    });
+  });
+
+  correctBtn.addEventListener("click", async () => {
+    if (!isManager) return;
+    await runTransaction(gameRef, (current) => {
+      if (!current || !current.currentResponderId) return current;
+      const responderId = current.currentResponderId;
+      const qIndex = current.questionIndex ?? 0;
+      const q = questions[qIndex] || { points: 1 };
+      current.players = current.players || {};
+      const p = current.players[responderId];
+      if (p) {
+        p.score = (p.score || 0) + (q.points || 1);
+        p.streak = (p.streak || 0) + 1;
+      }
+      current.questionActive = false;
+      current.currentResponderId = null;
+      current.questionEndsAt = null;
+      return current;
+    });
+  });
+
+  incorrectBtn.addEventListener("click", async () => {
+    if (!isManager) return;
+    await runTransaction(gameRef, (current) => {
+      if (!current || !current.currentResponderId) return current;
+      const responderId = current.currentResponderId;
+      current.players = current.players || {};
+      const p = current.players[responderId];
+      if (p) p.streak = 0;
+      current.currentResponderId = null; // reopen buzzing
+      return current;
+    });
+  });
+
+  skipBtn.addEventListener("click", async () => {
+    if (!isManager) return;
+    await runTransaction(gameRef, (current) => {
+      if (!current) return current;
+      current.questionActive = false;
+      current.currentResponderId = null;
+      current.questionEndsAt = null;
+      return current;
+    });
+  });
+</script>
+</body>
+</html>
