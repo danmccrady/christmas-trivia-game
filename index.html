@@ -446,8 +446,14 @@
   function updateTimer() {
     if (timerInterval) clearInterval(timerInterval);
 
-    // Pause timer if someone is answering
-    if (gameState.questionActive && gameState.currentResponderId) {
+    const hasRealResponder =
+      gameState.questionActive &&
+      gameState.currentResponderId &&
+      gameState.players &&
+      gameState.players[gameState.currentResponderId];
+
+    // Pause timer only if there is a valid responder
+    if (hasRealResponder) {
       const p = gameState.players[gameState.currentResponderId];
       const name = p ? p.name : "A player";
       timerEl.textContent = `⏸️ Timer paused while ${name} answers`;
@@ -499,13 +505,19 @@
       }
     }
 
+    const hasRealResponder =
+      gameState.questionActive &&
+      gameState.currentResponderId &&
+      gameState.players &&
+      gameState.players[gameState.currentResponderId];
+
     // Status / buzz availability & overlay
     if (!gameState.questionActive) {
       statusLineEl.textContent = "No active question. Waiting for manager...";
       buzzBtn.disabled = true;
       hideBuzzOverlay();
     } else {
-      if (!gameState.currentResponderId) {
+      if (!hasRealResponder) {
         statusLineEl.textContent = "Question is live! Tap Buzz when you know the answer.";
         buzzBtn.disabled = false;
         hideBuzzOverlay();
