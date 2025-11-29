@@ -1116,17 +1116,6 @@
 
 <!-- Firebase (modular SDK) + game logic -->
 <script type="module">
-  const firebaseConfig = {
-    apiKey: "AIzaSyBLzGCQZ5MlMlUbC8R7nSyft5TZt7ne8vw",
-    authDomain: "christmas-trivia-game.firebaseapp.com",
-    databaseURL: "https://christmas-trivia-game-default-rtdb.firebaseio.com",
-    projectId: "christmas-trivia-game",
-    storageBucket: "christmas-trivia-game.firebasestorage.app",
-    messagingSenderId: "303000729988",
-    appId: "1:303000729988:web:0f4c267de48a2a4d5e85d1",
-    measurementId: "G-W2X9RER9C8"
-  };
-
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import {
     getDatabase,
@@ -1139,6 +1128,7 @@
     runTransaction,
     get
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  import { firebaseConfig } from "./firebase-config.js";
 
   import { questions } from './questions.js';
 
