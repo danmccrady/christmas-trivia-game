@@ -439,8 +439,14 @@ const firebaseConfig = {
 
     // Question
     const q = getCurrentQuestion();
+
     if (!q) {
-      questionTextEl.textContent = "Waiting for the manager to start the first question...";
+      if (Object.keys(gameState.players || {}).length > 0 &&
+          gameState.questionIndex >= questions.length - 1) {
+        questionTextEl.textContent = "No more questions left in this game! Refresh to play again.";
+      } else {
+        questionTextEl.textContent = "Waiting for the manager to start the first question...";
+      }
       questionPointsEl.textContent = "";
       managerAnswerKey.textContent = "";
     } else {
