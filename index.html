@@ -1205,7 +1205,8 @@
     correct: ['santa-correct-1.mp3', 'santa-correct-2.mp3', 'santa-correct-3.mp3', 'santa-correct-4.mp3'],
     incorrect: ['santa-sorry-1.mp3', 'santa-sorry-2.mp3', 'santa-sorry-3.mp3', 'santa-sorry-4.mp3'],
     next: ['chime-1.mp3', 'chime-2.mp3', 'chime-3.mp3', 'chime-4.mp3'],
-    winner: ['chime-3.mp3', 'chime-4.mp3']
+    winner: ['chime-3.mp3', 'chime-4.mp3'],
+    welcome: ['santa-welcome-1.mp3', 'santa-welcome-2.mp3', 'santa-welcome-3.mp3', 'santa-welcome-4.mp3']
   };
   const QUESTION_DURATION_MS = 120000; // 2 minutes
 
@@ -2149,6 +2150,7 @@
   // ---- Manager action helpers ----
   async function handleStartNext() {
     if (!isManager || !ensureGameSelected()) return;
+    const isFirstQuestion = gameState.questionIndex == null || gameState.questionIndex < 0;
 
     await runTransaction(gameRef, (current) => {
       const now = Date.now();
@@ -2206,7 +2208,7 @@
       return current;
     });
     hideBuzzOverlay();
-    playRandomSound('next');
+    playRandomSound(isFirstQuestion ? 'welcome' : 'next');
   }
 
   async function handleCorrect() {
