@@ -326,11 +326,7 @@
   </div>
 </div>
 
-<!-- 🎄 Christmas sound effects (put these files in a /sounds folder or adjust paths) -->
-<audio id="sound-buzz" src="sounds/jingles-buzz.mp3" preload="auto"></audio>
-<audio id="sound-correct" src="sounds/hoho-correct.mp3" preload="auto"></audio>
-<audio id="sound-incorrect" src="sounds/coal-wrong.mp3" preload="auto"></audio>
-<audio id="sound-next" src="sounds/chime-next.mp3" preload="auto"></audio>
+<!-- 🎄 Christmas sound effects will be loaded dynamically -->
 
 <!-- Firebase (modular SDK) -->
 <script type="module">
@@ -395,11 +391,13 @@
   const overlaySkipBtn = document.getElementById("overlay-skip-btn");
   const overlayNextBtn = document.getElementById("overlay-next-btn");
 
-  // 🎄 Sound elements
-  const buzzSound = document.getElementById("sound-buzz");
-  const correctSound = document.getElementById("sound-correct");
-  const incorrectSound = document.getElementById("sound-incorrect");
-  const nextSound = document.getElementById("sound-next");
+  // 🎄 Sound system with multiple files per action
+  const soundGroups = {
+    buzz: ['jingle-buzz-1.mp3', 'jingle-buzz-2.mp3'],
+    correct: ['santa-correct-1.mp3', 'santa-correct-2.mp3', 'santa-correct-3.mp3', 'santa-correct-4.mp3'],
+    incorrect: ['santa-wrong-1.mp3', 'santa-wrong-2.mp3', 'santa-wrong-3.mp3', 'santa-wrong-4.mp3'],
+    next: ['chime-1.mp3', 'chime-2.mp3', 'chime-3.mp3', 'chime-4.mp3']
+  };
 
   // ---- Local state ----
   let myId = null;
@@ -435,11 +433,19 @@
     return questions[gameState.questionIndex] || null;
   }
 
-  function playSound(el) {
-    if (!el) return;
+  function playRandomSound(soundType) {
+    if (!soundGroups[soundType]) return;
+    
+    const soundFiles = soundGroups[soundType];
+    const randomIndex = Math.floor(Math.random() * soundFiles.length);
+    const selectedSound = soundFiles[randomIndex];
+    
     try {
-      el.currentTime = 0;
-      el.play().catch(() => {});
+      const audio = new Audio(`sounds/${selectedSound}`);
+      audio.currentTime = 0;
+      audio.play().catch(() => {
+        // ignore audio errors - user might need to interact first
+      });
     } catch (e) {
       // ignore audio errors
     }
@@ -531,7 +537,7 @@
 
     // 🔔 Play buzz when a *new* real responder appears
     if (hasRealResponder && gameState.currentResponderId !== lastResponderId) {
-      playSound(buzzSound);
+      playRandomSound('buzz');
       lastResponderId = gameState.currentResponderId;
     }
     if (!hasRealResponder) {
@@ -712,7 +718,7 @@
       return current;
     });
     hideBuzzOverlay();
-    playSound(nextSound);
+    playRandomSound('next');
   }
 
   async function handleCorrect() {
@@ -734,7 +740,7 @@
       return current;
     });
     hideBuzzOverlay();
-    playSound(correctSound);
+    playRandomSound('correct');
   }
 
   async function handleIncorrect() {
@@ -749,7 +755,7 @@
       return current;
     });
     hideBuzzOverlay();
-    playSound(incorrectSound);
+    playRandomSound('incorrect');
   }
 
   async function handleSkip() {
@@ -762,7 +768,7 @@
       return current;
     });
     hideBuzzOverlay();
-    playSound(nextSound);
+    playRandomSound('next');
   }
 
   // ---- Buzz ----
