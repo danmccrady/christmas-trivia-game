@@ -326,9 +326,14 @@
   </div>
 </div>
 
+<!-- 🎄 Christmas sound effects (put these files in a /sounds folder or adjust paths) -->
+<audio id="sound-buzz" src="sounds/jingle-buzz.mp3" preload="auto"></audio>
+<audio id="sound-correct" src="sounds/ho-ho-correct.mp3" preload="auto"></audio>
+<audio id="sound-incorrect" src="sounds/coal-wrong.mp3" preload="auto"></audio>
+<audio id="sound-next" src="sounds/chime-next.mp3" preload="auto"></audio>
+
 <!-- Firebase (modular SDK) -->
 <script type="module">
-  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyBLzGCQZ5MlMlUbC8R7nSyft5TZt7ne8vw",
     authDomain: "christmas-trivia-game.firebaseapp.com",
@@ -346,20 +351,16 @@
     ref,
     onValue,
     set,
-    update,
     remove,
     onDisconnect,
     runTransaction
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // Import questions from separate file
   import { questions } from './questions.js';
 
-  // ---- Firebase init ----
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-
-  const gameRef = ref(db, "christmasTriviaGame"); // single game room
+  const gameRef = ref(db, "christmasTriviaGame");
 
   // ---- DOM elements ----
   const loginCard = document.getElementById("login-card");
@@ -394,6 +395,12 @@
   const overlaySkipBtn = document.getElementById("overlay-skip-btn");
   const overlayNextBtn = document.getElementById("overlay-next-btn");
 
+  // 🎄 Sound elements
+  const buzzSound = document.getElementById("sound-buzz");
+  const correctSound = document.getElementById("sound-correct");
+  const incorrectSound = document.getElementById("sound-incorrect");
+  const nextSound = document.getElementById("sound-next");
+
   // ---- Local state ----
   let myId = null;
   let myName = null;
@@ -407,6 +414,7 @@
     questionEndsAt: null
   };
   let timerInterval = null;
+  let lastResponderId = null; // for detecting new buzzes
 
   // ---- Helpers ----
   function genId() {
@@ -425,6 +433,16 @@
   function getCurrentQuestion() {
     if (gameState.questionIndex == null || gameState.questionIndex < 0) return null;
     return questions[gameState.questionIndex] || null;
+  }
+
+  function playSound(el) {
+    if (!el) return;
+    try {
+      el.currentTime = 0;
+      el.play().catch(() => {});
+    } catch (e) {
+      // ignore audio errors
+    }
   }
 
   function showBuzzOverlay(responderName) {
@@ -510,6 +528,15 @@
       gameState.currentResponderId &&
       gameState.players &&
       gameState.players[gameState.currentResponderId];
+
+    // 🔔 Play buzz when a *new* real responder appears
+    if (hasRealResponder && gameState.currentResponderId !== lastResponderId) {
+      playSound(buzzSound);
+      lastResponderId = gameState.currentResponderId;
+    }
+    if (!hasRealResponder) {
+      lastResponderId = null;
+    }
 
     // Status / buzz availability & overlay
     if (!gameState.questionActive) {
@@ -619,7 +646,6 @@
     await set(playerRef, { name: myName, score: 0, streak: 0 });
     onDisconnect(playerRef).remove();
 
-    // First player becomes manager (transaction so only first wins)
     const managerRef = ref(db, "christmasTriviaGame/managerId");
     await runTransaction(managerRef, (current) => current || myId);
 
@@ -631,7 +657,7 @@
     if (e.key === "Enter") joinBtn.click();
   });
 
-  // ---- Reset game (host button on login screen) ----
+  // ---- Reset game ----
   resetGameBtn.addEventListener("click", async () => {
     const sure = confirm("Reset the game for everyone? This clears players and questions.");
     if (!sure) return;
@@ -645,14 +671,13 @@
     }
   });
 
-  // ---- Manager action helpers (used by both base + overlay buttons) ----
+  // ---- Manager action helpers ----
   async function handleStartNext() {
     if (!isManager) return;
 
     await runTransaction(gameRef, (current) => {
       const now = Date.now();
 
-      // Initialize game if it doesn't exist
       if (!current) {
         current = {
           players: {},
@@ -665,7 +690,6 @@
         return current;
       }
 
-      // If we've never asked a question yet
       if (current.questionIndex == null || current.questionIndex < 0) {
         current.questionIndex = 0;
         current.questionActive = true;
@@ -674,7 +698,6 @@
         return current;
       }
 
-      // If there are still questions left, move to the next one
       if (current.questionIndex < questions.length - 1) {
         current.questionIndex += 1;
         current.questionActive = true;
@@ -683,13 +706,13 @@
         return current;
       }
 
-      // No more questions left – end the game (no repeats)
       current.questionActive = false;
       current.currentResponderId = null;
       current.questionEndsAt = null;
       return current;
     });
     hideBuzzOverlay();
+    playSound(nextSound);
   }
 
   async function handleCorrect() {
@@ -711,6 +734,7 @@
       return current;
     });
     hideBuzzOverlay();
+    playSound(correctSound);
   }
 
   async function handleIncorrect() {
@@ -725,6 +749,7 @@
       return current;
     });
     hideBuzzOverlay();
+    playSound(incorrectSound);
   }
 
   async function handleSkip() {
@@ -737,6 +762,7 @@
       return current;
     });
     hideBuzzOverlay();
+    playSound(nextSound);
   }
 
   // ---- Buzz ----
@@ -746,7 +772,7 @@
 
     await runTransaction(ref(db, "christmasTriviaGame"), (current) => {
       if (!current || !current.questionActive) return current;
-      if (current.currentResponderId) return current; // someone already answering
+      if (current.currentResponderId) return current;
       current.currentResponderId = myId;
       return current;
     });
