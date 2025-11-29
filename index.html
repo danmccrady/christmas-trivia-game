@@ -2107,7 +2107,11 @@
     }
 
     const managerRef = roomRef("managerId");
-    await runTransaction(managerRef, (current) => current || myId);
+    const managerResult = await runTransaction(managerRef, (current) => current || myId);
+    const becameManager = managerResult?.committed && managerResult.snapshot?.val() === myId;
+    if (becameManager) {
+      playRandomSound('welcome');
+    }
 
     persistPlayerSessionCookie({
       playerId: myId,
@@ -2150,8 +2154,6 @@
   // ---- Manager action helpers ----
   async function handleStartNext() {
     if (!isManager || !ensureGameSelected()) return;
-    const isFirstQuestion = gameState.questionIndex == null || gameState.questionIndex < 0;
-
     await runTransaction(gameRef, (current) => {
       const now = Date.now();
 
@@ -2208,7 +2210,7 @@
       return current;
     });
     hideBuzzOverlay();
-    playRandomSound(isFirstQuestion ? 'welcome' : 'next');
+    playRandomSound('next');
   }
 
   async function handleCorrect() {
