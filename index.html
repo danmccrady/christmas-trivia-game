@@ -6,17 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --red: #e63946;
-      --red-dark: #b22222;
-      --green: #0b6623;
-      --green-soft: #17803b;
+      --cranberry: #c2185b;
+      --cranberry-light: #ff5f8f;
+      --evergreen: #0f9d58;
+      --evergreen-dark: #0b6b3a;
+      --frost: #d7f9ff;
       --gold: #ffd700;
-      --bg: #020b0f;
-      --bg-soft: #071c1a;
-      --card-bg: rgba(7, 28, 26, 0.95);
-      --card-border: rgba(255, 255, 255, 0.15);
+      --plum: #3a0a3a;
+      --bg: #05030c;
+      --bg-soft: #0c1b26;
+      --card-bg: rgba(10, 20, 30, 0.9);
+      --card-border: rgba(255, 255, 255, 0.12);
       --text: #fdfdfd;
-      --muted: #cfd8dc;
+      --muted: #d7e3ea;
     }
 
     * {
@@ -29,7 +31,9 @@
       padding: 0;
       min-height: 100%;
       color: var(--text);
-      background: radial-gradient(circle at top, #123, var(--bg));
+      background: radial-gradient(circle at top, rgba(255, 122, 181, 0.2), transparent 55%),
+        radial-gradient(circle at 20% 20%, rgba(47, 255, 198, 0.25), transparent 45%),
+        linear-gradient(135deg, #05030c, #0c1b26 55%, #120018);
     }
 
     body {
@@ -39,39 +43,87 @@
     }
 
     .overlay {
+      position: relative;
       min-height: 100vh;
       width: 100%;
       background:
-        radial-gradient(circle at top, rgba(255,255,255,0.05), transparent 60%),
-        linear-gradient(135deg, rgba(1, 10, 8, 0.98), rgba(0, 40, 24, 0.96));
+        radial-gradient(circle at top, rgba(255,255,255,0.06), transparent 60%),
+        linear-gradient(125deg, rgba(17, 0, 32, 0.92), rgba(0, 40, 24, 0.9));
       padding: 16px;
+      overflow: hidden;
+    }
+
+    .snowfield {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .snowfield::before,
+    .snowfield::after {
+      content: "";
+      position: absolute;
+      top: -100%;
+      left: -25%;
+      width: 150%;
+      height: 200%;
+      background-image:
+        radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2px 2px at 80px 120px, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3px 3px at 130px 70px, rgba(255, 255, 255, 0.75), transparent),
+        radial-gradient(2px 2px at 200px 180px, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(3px 3px at 250px 20px, rgba(255, 255, 255, 0.7), transparent);
+      background-size: 220px 220px;
+      animation: snowfall 18s linear infinite;
+      opacity: 0.7;
+    }
+
+    .snowfield::after {
+      animation-duration: 28s;
+      animation-direction: reverse;
+      opacity: 0.5;
+      transform: rotate(8deg);
+    }
+
+    @keyframes snowfall {
+      0% {
+        transform: translateY(0);
+      }
+      100% {
+        transform: translateY(50%);
+      }
     }
 
     .container {
       max-width: 1100px;
       margin: 0 auto;
+      position: relative;
+      z-index: 1;
     }
 
     /* HEADER */
     header {
       text-align: center;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
+      padding: 6px 0 10px;
     }
 
     header h1 {
-      margin: 4px 0 2px;
-      font-size: 2.2rem;
-      letter-spacing: 0.06em;
+      margin: 6px 0 4px;
+      font-size: 2.4rem;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #fffbea;
-      text-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
+      color: var(--frost);
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
     }
 
     header p {
-      margin: 4px auto 0;
-      font-size: 0.95rem;
+      margin: 6px auto 0;
+      font-size: 1rem;
       color: var(--muted);
-      max-width: 420px;
+      max-width: 520px;
     }
 
     .snowflakes {
@@ -90,16 +142,16 @@
     .main-layout {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 18px;
-      padding: 16px 16px 18px;
+      border-radius: 22px;
+      padding: 18px 18px 20px;
       box-shadow:
-        0 18px 40px rgba(0, 0, 0, 0.6),
-        0 0 0 1px rgba(255, 255, 255, 0.02);
-      backdrop-filter: blur(16px);
+        0 18px 50px rgba(0, 0, 0, 0.65),
+        0 0 0 1px rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(18px);
     }
 
     .login-card {
-      max-width: 420px;
+      max-width: 560px;
       margin: 32px auto 0;
       text-align: center;
     }
@@ -108,6 +160,46 @@
       margin: 0 0 10px;
       font-size: 0.96rem;
       color: var(--muted);
+    }
+
+    .login-card-header {
+      margin-bottom: 12px;
+    }
+
+    .login-card-header h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fffbea;
+    }
+
+    .login-card-header p {
+      margin: 6px auto 0;
+      max-width: 360px;
+    }
+
+    .login-card-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px;
+      text-align: left;
+    }
+
+    .login-section {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .login-section h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--gold);
     }
 
     .login-card input {
@@ -131,6 +223,59 @@
       border-color: var(--gold);
       background: rgba(0,0,0,0.55);
       box-shadow: 0 0 0 1px rgba(255,215,0,0.5);
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 6px;
+    }
+
+    .code-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .code-actions .btn {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .helper-text {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.75);
+      margin: 8px 0 0;
+    }
+
+    .invite-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.82rem;
+      margin-top: 6px;
+      color: var(--muted);
+    }
+
+    .invite-chip.active {
+      color: var(--gold);
+      border-color: rgba(255, 215, 0, 0.5);
+      background: rgba(255, 215, 0, 0.08);
+    }
+
+    .login-actions {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .tagline {
@@ -162,13 +307,13 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--red), #ff6b6b);
+      background: linear-gradient(130deg, var(--cranberry), var(--cranberry-light));
       color: #fff;
       box-shadow: 0 8px 18px rgba(0,0,0,0.6);
     }
 
     .btn-secondary {
-      background: linear-gradient(135deg, var(--green), var(--green-soft));
+      background: linear-gradient(135deg, var(--evergreen), var(--evergreen-dark));
       color: #fff;
       box-shadow: 0 6px 14px rgba(0,0,0,0.5);
     }
@@ -208,17 +353,67 @@
     }
 
     /* QUESTION CARD */
-    .card h2 {
-      margin: 0 0 8px;
-      font-size: 1.25rem;
+    .card-title {
+      margin: 0 0 6px;
+      font-size: 1.3rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 14px;
+    }
+
+    .question-progress {
+      font-size: 0.9rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .question-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .badge-chip {
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--frost);
+    }
+
+    .badge-chip[data-level="warm-up"] {
+      background: rgba(15, 157, 88, 0.12);
+      border-color: rgba(15, 157, 88, 0.4);
+      color: #b8ffdd;
+    }
+
+    .badge-chip[data-level="tricky"] {
+      background: rgba(255, 215, 0, 0.15);
+      border-color: rgba(255, 215, 0, 0.55);
+      color: #fff9c4;
+    }
+
+    .badge-chip[data-level="challenge"] {
+      background: rgba(194, 24, 91, 0.15);
+      border-color: rgba(194, 24, 91, 0.5);
+      color: #ffd0e5;
     }
 
     .question-text {
-      font-size: 1.2rem;
+      font-size: 1.26rem;
       margin: 8px 0 12px;
       line-height: 1.45;
     }
@@ -243,11 +438,14 @@
     }
 
     .buzz-btn {
-      font-size: 1.15rem;
-      padding: 14px 26px;
+      font-size: 1.2rem;
+      padding: 16px 30px;
       width: 100%;
-      max-width: 340px;
+      max-width: 360px;
       border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.3), transparent 55%),
+        linear-gradient(120deg, var(--evergreen), var(--cranberry));
+      box-shadow: 0 14px 25px rgba(12, 12, 12, 0.6);
     }
 
     #toast {
@@ -308,16 +506,26 @@
       overflow-y: auto;
     }
 
+    .scoreboard-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+      margin-top: 6px;
+    }
+
     .scoreboard-list li {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 10px;
-      margin-bottom: 5px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      font-size: 0.95rem;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 1rem;
     }
 
     .scoreboard-list li.me {
@@ -328,11 +536,24 @@
     .score-name {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
+    }
+
+    .avatar-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 600;
     }
 
     .badge {
-      font-size: 1rem;
+      font-size: 1.1rem;
     }
 
     .scoreboard-list li div:last-child {
@@ -354,19 +575,20 @@
     .buzz-overlay {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at top, rgba(0,0,0,0.87), rgba(0,0,0,0.93));
+      background: radial-gradient(circle at top, rgba(0,0,0,0.8), rgba(0,0,0,0.92));
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 999;
+      backdrop-filter: blur(6px);
     }
 
     .buzz-overlay-content {
-      background: radial-gradient(circle at top, #214b21, #020b08);
-      border-radius: 24px;
-      padding: 22px 20px 20px;
-      border: 2px solid var(--gold);
-      box-shadow: 0 0 60px rgba(0,0,0,0.95);
+      background: radial-gradient(circle at top, rgba(37, 70, 110, 0.95), rgba(6, 14, 30, 0.95));
+      border-radius: 28px;
+      padding: 24px 22px 22px;
+      border: 2px solid rgba(255,255,255,0.18);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.75);
       text-align: center;
       max-width: 460px;
       width: 94%;
@@ -382,6 +604,11 @@
       margin: 4px 0 0;
       font-size: 1.05rem;
       color: #fefefe;
+    }
+
+    #buzz-manager-controls .btn {
+      flex: 1 1 46%;
+      min-width: 150px;
     }
 
     /* Manager answer area in overlay */
@@ -424,6 +651,10 @@
       .login-card {
         margin-top: 20px;
         padding: 16px 14px 18px;
+      }
+
+      .login-card-grid {
+        grid-template-columns: 1fr;
       }
 
       .card,
@@ -473,6 +704,7 @@
 </head>
 <body>
 <div class="overlay">
+  <div class="snowfield" aria-hidden="true"></div>
   <div class="container">
     <header>
       <div class="snowflakes">❄️ 🎄 ❄️</div>
@@ -482,16 +714,38 @@
 
     <!-- Login -->
     <div class="login-card" id="login-card">
-      <p>Enter your festive name to join the game.</p>
-      <input id="username-input" type="text" placeholder="e.g. Rudolph, Elf #1" />
-      <button class="btn btn-primary" id="join-btn">🎮 Join the Game</button>
+      <div class="login-card-header">
+        <h2>Gather Your Crew</h2>
+        <p>Pick a festive name, then create or enter a room code so multiple families can play at once.</p>
+      </div>
+
+      <div class="login-card-grid">
+        <div class="login-section">
+          <h3>🎉 Player Details</h3>
+          <label class="field-label" for="username-input">Festive Name</label>
+          <input id="username-input" type="text" placeholder="e.g. Rudolph, Elf #1" autocomplete="off" />
+          <p class="helper-text">Tip: Short names look best on the scoreboard.</p>
+        </div>
+
+        <div class="login-section">
+          <h3>🏠 Game Room</h3>
+          <label class="field-label" for="game-code-input">Game Code</label>
+          <input id="game-code-input" type="text" placeholder="e.g. SNOW-123" autocomplete="off" />
+          <div class="code-actions">
+            <button class="btn btn-secondary" id="create-game-btn" type="button">✨ Create Cozy Room</button>
+            <button class="btn btn-primary" id="copy-invite-btn" type="button" disabled>🔗 Copy Invite Link</button>
+          </div>
+          <p class="helper-text">Hosting? tap create for a new code. Joining? enter the one your host sent.</p>
+          <div class="invite-chip" id="invite-chip">🔗 Shareable link appears once you have a code.</div>
+        </div>
+      </div>
+
+      <div class="login-actions">
+        <button class="btn btn-primary" id="join-btn">🎮 Join the Game</button>
+        <button class="btn btn-secondary" id="reset-game-btn">🔁 Reset Game (host)</button>
+      </div>
+
       <p class="tagline">First player becomes the Game Manager 🎅</p>
-
-      <!-- Reset Game button -->
-      <button class="btn btn-secondary" id="reset-game-btn" style="margin-top:8px;">
-        🔁 Reset Game (host)
-      </button>
-
       <p id="login-error" style="color:#ffcccc; font-size:0.85rem; min-height:1em;"></p>
     </div>
 
@@ -501,10 +755,14 @@
       <div class="grid">
         <!-- Question / Buzz -->
         <div class="card">
-          <h2>
-            🎁 Current Question
-            <span id="question-points"></span>
+          <h2 class="card-title">
+            <span>🎁 Question Deck</span>
+            <span class="question-progress" id="question-progress">—</span>
           </h2>
+          <div class="question-meta">
+            <span id="question-points">Waiting for kickoff…</span>
+            <span id="question-difficulty" class="badge-chip">Warm-Up</span>
+          </div>
           <div class="question-text" id="question-text">
             Waiting for the manager to start the first question...
           </div>
@@ -534,7 +792,14 @@
 
         <!-- Scoreboard -->
         <div class="card">
-          <h2>🎄 Scoreboard</h2>
+          <h2 class="card-title">
+            <span>🎄 Scoreboard</span>
+            <span class="badge-chip" style="font-size:0.78rem;">Live Standings</span>
+          </h2>
+          <div class="scoreboard-header">
+            <span>Players</span>
+            <span>Points</span>
+          </div>
           <ul class="scoreboard-list" id="scoreboard"></ul>
           <div class="game-ideas">
             <strong>Bonus fun:</strong>
@@ -609,13 +874,19 @@
   const loginCard = document.getElementById("login-card");
   const mainLayout = document.getElementById("main-layout");
   const usernameInput = document.getElementById("username-input");
+  const gameCodeInput = document.getElementById("game-code-input");
   const joinBtn = document.getElementById("join-btn");
   const loginError = document.getElementById("login-error");
   const resetGameBtn = document.getElementById("reset-game-btn");
+  const createGameBtn = document.getElementById("create-game-btn");
+  const copyInviteBtn = document.getElementById("copy-invite-btn");
+  const inviteChip = document.getElementById("invite-chip");
 
   const roleBanner = document.getElementById("role-banner");
   const questionTextEl = document.getElementById("question-text");
   const questionPointsEl = document.getElementById("question-points");
+  const questionProgressEl = document.getElementById("question-progress");
+  const questionDifficultyEl = document.getElementById("question-difficulty");
   const timerEl = document.getElementById("timer");
   const statusLineEl = document.getElementById("status-line");
   const buzzBtn = document.getElementById("buzz-btn");
@@ -662,6 +933,20 @@
   };
   let timerInterval = null;
   let lastResponderId = null;
+  let inviteCopyTimeout = null;
+
+  const festiveWords = [
+    "HOLLY",
+    "MERRY",
+    "ELF",
+    "SNOW",
+    "STAR",
+    "JOY",
+    "NORTH",
+    "LIGHT",
+    "BELL",
+    "SANTA"
+  ];
 
   // ---- Helpers ----
   function genId() {
@@ -677,9 +962,93 @@
     }
   }
 
+  function formatGameCode(value = "") {
+    const cleaned = value
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
+    if (!cleaned) return "";
+    if (cleaned.length <= 4) return cleaned;
+    return `${cleaned.slice(0, 4)}-${cleaned.slice(4, 8)}`;
+  }
+
+  function generateFestiveCode() {
+    const word = festiveWords[Math.floor(Math.random() * festiveWords.length)];
+    const digits = Math.floor(100 + Math.random() * 900);
+    return `${word}-${digits}`;
+  }
+
+  function updateInviteState() {
+    if (!gameCodeInput || !copyInviteBtn || !inviteChip) return;
+    const code = formatGameCode(gameCodeInput.value);
+    if (gameCodeInput.value !== code) {
+      gameCodeInput.value = code;
+    }
+    const hasCode = Boolean(code);
+    copyInviteBtn.disabled = !hasCode;
+
+    if (!hasCode) {
+      copyInviteBtn.textContent = "🔗 Copy Invite Link";
+      inviteChip.textContent = "🔗 Shareable link appears once you have a code.";
+      inviteChip.classList.remove("active");
+      return;
+    }
+
+    const inviteUrl = `${window.location.origin}${window.location.pathname}?game=${encodeURIComponent(code)}`;
+    inviteChip.textContent = inviteUrl;
+    inviteChip.classList.add("active");
+  }
+
+  if (gameCodeInput) {
+    updateInviteState();
+    gameCodeInput.addEventListener("input", updateInviteState);
+    gameCodeInput.addEventListener("keyup", (e) => {
+      if (e.key === "Enter") joinBtn.click();
+    });
+  }
+
+  createGameBtn?.addEventListener("click", () => {
+    if (!gameCodeInput) return;
+    const newCode = generateFestiveCode();
+    gameCodeInput.value = newCode;
+    updateInviteState();
+    gameCodeInput.focus();
+    gameCodeInput.select();
+  });
+
+  copyInviteBtn?.addEventListener("click", async () => {
+    if (!gameCodeInput || !copyInviteBtn) return;
+    const code = formatGameCode(gameCodeInput.value);
+    if (!code) return;
+    gameCodeInput.value = code;
+    updateInviteState();
+    const inviteUrl = `${window.location.origin}${window.location.pathname}?game=${encodeURIComponent(code)}`;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(inviteUrl);
+      } else {
+        throw new Error("Clipboard API unavailable");
+      }
+      copyInviteBtn.textContent = "✅ Copied!";
+    } catch (err) {
+      copyInviteBtn.textContent = "📋 Link Ready";
+      showToast(`Share this link: ${inviteUrl}`);
+    }
+    clearTimeout(inviteCopyTimeout);
+    inviteCopyTimeout = setTimeout(() => {
+      copyInviteBtn.textContent = "🔗 Copy Invite Link";
+    }, 2600);
+  });
+
   function getCurrentQuestion() {
     if (gameState.questionIndex == null || gameState.questionIndex < 0) return null;
     return questions[gameState.questionIndex] || null;
+  }
+
+  function getDifficultyLabel(points) {
+    if (points >= 3) return "Challenge";
+    if (points === 2) return "Tricky";
+    return "Warm-Up";
   }
 
   function playRandomSound(soundType) {
@@ -776,11 +1145,19 @@
     const q = getCurrentQuestion();
     if (!q) {
       questionTextEl.textContent = "Waiting for the manager to start the first question...";
-      questionPointsEl.textContent = "";
+      questionPointsEl.textContent = "Ready when you are";
+      questionProgressEl.textContent = "—";
+      questionDifficultyEl.textContent = "Warm-Up";
+      questionDifficultyEl.dataset.level = "warm-up";
       managerAnswerKey.textContent = "";
     } else {
       questionTextEl.textContent = q.text;
-      questionPointsEl.textContent = `(${q.points} pt${q.points > 1 ? "s" : ""})`;
+      questionPointsEl.textContent = `${q.points} pt${q.points > 1 ? "s" : ""} question`;
+      const progress = `${Math.min(gameState.questionIndex + 1, questions.length)}/${questions.length}`;
+      questionProgressEl.textContent = `Q${progress}`;
+      const difficulty = getDifficultyLabel(q.points);
+      questionDifficultyEl.textContent = difficulty;
+      questionDifficultyEl.dataset.level = difficulty.toLowerCase();
       if (isManager) {
         managerAnswerKey.textContent = q.answer;
       } else {
@@ -848,8 +1225,15 @@
 
         const left = document.createElement("div");
         left.className = "score-name";
+        const avatar = document.createElement("span");
+        avatar.className = "avatar-badge";
+        avatar.textContent = (p.name || "?")
+          .trim()
+          .slice(0, 2)
+          .toUpperCase();
         const nameSpan = document.createElement("span");
         nameSpan.textContent = p.name + (p.id === myId ? " (you)" : "");
+        left.appendChild(avatar);
         left.appendChild(nameSpan);
 
         if (p.id === leaderId && p.score > 0) {
