@@ -1049,6 +1049,10 @@
               <div id="manager-answer-key" style="margin-top:4px; font-style:italic;"></div>
             </div>
           </div>
+
+          <div class="leave-game-row">
+            <button class="btn btn-secondary" id="leave-game-btn" type="button">🚪 Leave Game</button>
+          </div>
         </div>
 
         <!-- Scoreboard -->
@@ -1132,7 +1136,8 @@
     update,
     remove,
     onDisconnect,
-    runTransaction
+    runTransaction,
+    get
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
   import { questions } from './questions.js';
@@ -1183,6 +1188,7 @@
   const startNextBtn = document.getElementById("start-next-btn");
   const skipBtn = document.getElementById("skip-btn");
   const endGameBtn = document.getElementById("end-game-btn");
+  const leaveGameBtn = document.getElementById("leave-game-btn");
   const managerAnswerKey = document.getElementById("manager-answer-key");
 
   const buzzOverlay = document.getElementById("buzz-overlay");
@@ -1643,19 +1649,31 @@
     const session = readPlayerSessionCookie();
     if (!session) return;
     try {
+      const formattedCode = formatGameCode(session.gameCode);
+      if (!formattedCode) {
+        clearPlayerSessionCookie();
+        return;
+      }
+
+      const roomSnapshot = await get(ref(db, `games/${formattedCode}`));
+      const roomData = roomSnapshot.exists() ? roomSnapshot.val() : null;
+      const roomInactive = !roomData || roomData.gameOver;
+      if (roomInactive) {
+        clearPlayerSessionCookie();
+        showToast("That game has ended. Create or join a new room.");
+        return;
+      }
+
       wizardChoice = "join";
       setWizardStep("join");
-      const formattedCode = formatGameCode(session.gameCode);
-      if (gameCodeInput && formattedCode) {
+      if (gameCodeInput) {
         gameCodeInput.value = formattedCode;
         updateInviteState();
       }
       if (usernameInput && session.playerName) {
         usernameInput.value = session.playerName;
       }
-      if (formattedCode) {
-        subscribeToGame(formattedCode);
-      }
+      subscribeToGame(formattedCode);
       myId = session.playerId;
       myName = (session.playerName || "").substring(0, 20);
       if (myName) {
@@ -1905,6 +1923,14 @@
       ? "You are the Game Manager. Start questions and mark answers."
       : "You are a Player. Buzz in when you know it!";
     managerPanel.style.display = isManager ? "block" : "none";
+    if (leaveGameBtn) {
+      if (myId) {
+        leaveGameBtn.style.display = "inline-flex";
+        leaveGameBtn.disabled = false;
+      } else {
+        leaveGameBtn.style.display = "none";
+      }
+    }
 
     // Question
     const q = getCurrentQuestion();
@@ -2346,6 +2372,9 @@
   overlayIncorrectBtn.addEventListener("click", handleIncorrect);
   overlaySkipBtn.addEventListener("click", handleSkip);
   winnerCloseBtn?.addEventListener("click", () => hideWinnerOverlay(true));
+  leaveGameBtn?.addEventListener("click", () => {
+    leaveGameAndReturnHome({ preserveName: true, toastMessage: "You left the game." });
+  });
 
   attemptCookieRestore();
   initLobbyListener();
