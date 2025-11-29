@@ -153,20 +153,22 @@
     .login-card {
       max-width: 560px;
       margin: 32px auto 0;
-      text-align: center;
     }
 
-    .login-card p {
+    .entry-wizard p {
       margin: 0 0 10px;
       font-size: 0.96rem;
       color: var(--muted);
     }
 
-    .login-card-header {
-      margin-bottom: 12px;
+    .wizard-progress {
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 12px;
+      margin-bottom: 18px;
     }
 
-    .login-card-header h2 {
+    .wizard-progress h2 {
       margin: 0;
       font-size: 1.2rem;
       letter-spacing: 0.08em;
@@ -174,32 +176,130 @@
       color: #fffbea;
     }
 
-    .login-card-header p {
-      margin: 6px auto 0;
-      max-width: 360px;
+    .wizard-progress p {
+      margin: 6px 0 0;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.95rem;
     }
 
-    .login-card-grid {
-      margin-top: 14px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 12px;
-      text-align: left;
+    .wizard-step {
+      display: none;
+      animation: wizardFade 260ms ease;
     }
 
-    .login-section {
+    .wizard-step.active {
+      display: block;
+    }
+
+    @keyframes wizardFade {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .wizard-name-block {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.09);
       border-radius: 16px;
       padding: 14px;
+      margin-bottom: 16px;
     }
 
-    .login-section h3 {
-      margin: 0 0 8px;
-      font-size: 1rem;
+    .wizard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 520px) {
+      .wizard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .wizard-card {
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      transition: border 0.2s ease, transform 0.12s ease, background 0.2s ease;
+      text-align: left;
+      width: 100%;
+      color: inherit;
+      font: inherit;
+    }
+
+    .wizard-card:hover {
+      border-color: rgba(255,215,0,0.5);
+      background: rgba(255,255,255,0.07);
+      transform: translateY(-2px);
+    }
+
+    .wizard-card-title {
+      display: block;
+      margin: 0 0 6px;
+      font-size: 1.05rem;
       letter-spacing: 0.04em;
       text-transform: uppercase;
       color: var(--gold);
+    }
+
+    .wizard-card-copy {
+      display: block;
+      color: rgba(255,255,255,0.75);
+      font-size: 0.9rem;
+    }
+
+    .wizard-card .wizard-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      margin-bottom: 10px;
+    }
+
+    .wizard-card.secondary {
+      border-color: rgba(255,255,255,0.08);
+      background: rgba(10,40,25,0.35);
+    }
+
+    .wizard-card.secondary:hover {
+      border-color: rgba(15, 157, 88, 0.7);
+    }
+
+    .wizard-card:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 3px;
+    }
+
+    .wizard-back-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .wizard-back {
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.8);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 0.85;
+    }
+
+    .wizard-back:hover {
+      opacity: 1;
     }
 
     .login-card input {
@@ -234,22 +334,19 @@
       margin-bottom: 6px;
     }
 
-    .code-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .code-actions .btn {
-      flex: 1;
-      min-width: 140px;
-    }
-
     .helper-text {
       font-size: 0.8rem;
       color: rgba(255,255,255,0.75);
       margin: 8px 0 0;
+    }
+
+    .code-display {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-align: center;
+      margin: 12px 0;
+      color: var(--gold);
     }
 
     .invite-chip {
@@ -269,13 +366,6 @@
       color: var(--gold);
       border-color: rgba(255, 215, 0, 0.5);
       background: rgba(255, 215, 0, 0.08);
-    }
-
-    .login-actions {
-      margin-top: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
     }
 
     .lobby-panel {
@@ -356,10 +446,34 @@
       cursor: default;
     }
 
+    .wizard-cta {
+      margin-top: 18px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .wizard-cta .btn {
+      width: 100%;
+    }
+
+    .code-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .code-actions .btn {
+      flex: 1;
+      min-width: 140px;
+    }
+
     .tagline {
       font-size: 0.85rem;
       color: rgba(255,255,255,0.8);
       margin-top: 4px;
+      text-align: center;
     }
 
     /* BUTTONS */
@@ -731,10 +845,6 @@
         padding: 16px 14px 18px;
       }
 
-      .login-card-grid {
-        grid-template-columns: 1fr;
-      }
-
       .card,
       .main-layout {
         padding: 14px 12px 16px;
@@ -790,53 +900,77 @@
       <p>Open this page on your phone, join with a festive name, and race to buzz in first!</p>
     </header>
 
-    <!-- Login -->
-    <div class="login-card" id="login-card">
-      <div class="login-card-header">
-        <h2>Gather Your Crew</h2>
-        <p>Pick a festive name, then create or enter a room code so multiple families can play at once.</p>
+    <!-- Wizard Entry -->
+    <div class="login-card entry-wizard" id="login-card">
+      <div class="wizard-progress">
+        <h2 id="wizard-step-label">Step 1 · Choose your path</h2>
+        <p id="wizard-step-subtitle">Are you hosting tonight or hopping into an existing room?</p>
       </div>
 
-      <div class="login-card-grid">
-        <div class="login-section">
-          <h3>🎉 Player Details</h3>
+      <div class="wizard-step active" id="wizard-step-mode" data-step="mode">
+        <div class="wizard-name-block">
           <label class="field-label" for="username-input">Festive Name</label>
           <input id="username-input" type="text" placeholder="e.g. Rudolph, Elf #1" autocomplete="off" />
           <p class="helper-text">Tip: Short names look best on the scoreboard.</p>
         </div>
 
-        <div class="login-section">
-          <h3>🏠 Game Room</h3>
-          <label class="field-label" for="game-code-input">Game Code</label>
-          <input id="game-code-input" type="text" placeholder="e.g. SNOW-123" autocomplete="off" />
-          <div class="code-actions">
-            <button class="btn btn-secondary" id="create-game-btn" type="button">✨ Create Cozy Room</button>
-            <button class="btn btn-primary" id="copy-invite-btn" type="button" disabled>🔗 Copy Invite Link</button>
-          </div>
-          <p class="helper-text">Hosting? tap create for a new code. Joining? enter the one your host sent.</p>
-          <div class="invite-chip" id="invite-chip">🔗 Shareable link appears once you have a code.</div>
+        <div class="wizard-grid">
+          <button class="wizard-card" id="wizard-host-card" type="button">
+            <span class="wizard-pill">Host</span>
+            <span class="wizard-card-title">🎉 Host a New Room</span>
+            <span class="wizard-card-copy">Spin up a fresh festive lobby. We’ll mint a cozy code and give you manager powers.</span>
+          </button>
+          <button class="wizard-card secondary" id="wizard-join-card" type="button">
+            <span class="wizard-pill">Join</span>
+            <span class="wizard-card-title">🎁 Join an Existing Room</span>
+            <span class="wizard-card-copy">Peek at the live lobby or paste the invite code you already received.</span>
+          </button>
         </div>
       </div>
 
-      <div class="login-actions">
-        <button class="btn btn-primary" id="join-btn">🎮 Join the Game</button>
-        <button class="btn btn-secondary" id="reset-game-btn">🔁 Reset Game (host)</button>
+      <div class="wizard-step" id="wizard-step-host" data-step="host">
+        <div class="wizard-back-row">
+          <button class="wizard-back" type="button" data-go-step="mode">← Back</button>
+          <span class="wizard-pill">Host view</span>
+        </div>
+        <p>We generated a magical room code for your crew. Share it and you’ll become manager once you join.</p>
+        <div class="code-display" id="wizard-code-display">----</div>
+        <div class="helper-text">Need a different vibe? Tap create again for a fresh combo.</div>
+        <div class="code-actions">
+          <button class="btn btn-secondary" id="create-game-btn" type="button">✨ New Cozy Code</button>
+          <button class="btn btn-primary" id="copy-invite-btn" type="button" disabled>🔗 Copy Invite Link</button>
+        </div>
+        <div class="invite-chip" id="invite-chip">🔗 Shareable link appears once you have a code.</div>
       </div>
 
-      <div class="lobby-panel">
-        <h3>🎯 Live Lobby</h3>
-        <p>Peek at active rooms and tap one to fill the code automatically.</p>
-        <ul class="lobby-list" id="lobby-list">
-          <li class="lobby-item empty">No rooms yet. Be the first to start one!</li>
-        </ul>
+      <div class="wizard-step" id="wizard-step-join" data-step="join">
+        <div class="wizard-back-row">
+          <button class="wizard-back" type="button" data-go-step="mode">← Back</button>
+          <span class="wizard-pill">Guest view</span>
+        </div>
+        <label class="field-label" for="game-code-input">Game Code</label>
+        <input id="game-code-input" type="text" placeholder="e.g. SNOW-123" autocomplete="off" />
+        <p class="helper-text">Tap a lobby listing below or paste the code your host sent.</p>
+        <div class="lobby-panel">
+          <h3>🎯 Live Lobby</h3>
+          <p>Peek at active rooms and tap one to fill the code automatically.</p>
+          <ul class="lobby-list" id="lobby-list">
+            <li class="lobby-item empty">No rooms yet. Be the first to start one!</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="wizard-cta" id="wizard-cta">
+        <button class="btn btn-primary" id="join-btn">🎄 Enter the Room</button>
+        <button class="btn btn-secondary" id="reset-game-btn">🔁 Reset Game (host)</button>
+        <p id="login-error" style="color:#ffcccc; font-size:0.85rem; min-height:1em;"></p>
       </div>
 
       <p class="tagline">First player becomes the Game Manager 🎅</p>
-      <p id="login-error" style="color:#ffcccc; font-size:0.85rem; min-height:1em;"></p>
     </div>
 
     <!-- Main Game -->
-    <div class="main-layout" id="main-layout">
+    <div class="main-layout" id="main-layout" style="display:none;">
       <div id="role-banner"></div>
       <div class="grid">
         <!-- Question / Buzz -->
@@ -865,9 +999,8 @@
             <h3>🎅 Game Manager Controls</h3>
             <div class="manager-buttons">
               <button class="btn btn-primary" id="start-next-btn">▶️ Start / Next Question</button>
-              <button class="btn btn-secondary" id="correct-btn">✅ Correct</button>
-              <button class="btn btn-secondary" id="incorrect-btn">❌ Incorrect</button>
               <button class="btn btn-secondary" id="skip-btn">⏭️ Skip</button>
+              <button class="btn btn-secondary" id="end-game-btn">🏁 End Game</button>
             </div>
             <div style="font-size:0.9rem; text-align:left;">
               <strong>Answer Key (also shown in manager popup):</strong>
@@ -972,6 +1105,14 @@
   const copyInviteBtn = document.getElementById("copy-invite-btn");
   const inviteChip = document.getElementById("invite-chip");
   const lobbyListEl = document.getElementById("lobby-list");
+  const wizardStepLabel = document.getElementById("wizard-step-label");
+  const wizardStepSubtitle = document.getElementById("wizard-step-subtitle");
+  const wizardSteps = document.querySelectorAll(".wizard-step");
+  const wizardCta = document.getElementById("wizard-cta");
+  const wizardHostCard = document.getElementById("wizard-host-card");
+  const wizardJoinCard = document.getElementById("wizard-join-card");
+  const wizardBackButtons = document.querySelectorAll(".wizard-back");
+  const wizardCodeDisplay = document.getElementById("wizard-code-display");
   const urlParams = new URLSearchParams(window.location.search);
   const urlGameParam = urlParams.get("game");
   const storedFestiveName = localStorage.getItem("festiveName") || "";
@@ -989,9 +1130,8 @@
 
   const managerPanel = document.getElementById("manager-panel");
   const startNextBtn = document.getElementById("start-next-btn");
-  const correctBtn = document.getElementById("correct-btn");
-  const incorrectBtn = document.getElementById("incorrect-btn");
   const skipBtn = document.getElementById("skip-btn");
+  const endGameBtn = document.getElementById("end-game-btn");
   const managerAnswerKey = document.getElementById("manager-answer-key");
 
   const buzzOverlay = document.getElementById("buzz-overlay");
@@ -1023,13 +1163,41 @@
     questionIndex: -1,
     questionActive: false,
     currentResponderId: null,
-    questionEndsAt: null
+    questionEndsAt: null,
+    gameOver: false,
+    winnerId: null
   });
   let gameState = getDefaultGameState();
   let timerInterval = null;
   let lastResponderId = null;
   let inviteCopyTimeout = null;
   let unsubscribeLobby = null;
+  let wizardStepState = "mode";
+  let wizardChoice = null;
+
+  const wizardMeta = {
+    mode: {
+      label: "Step 1 · Choose your path",
+      subtitle: "Are you hosting tonight or hopping into an existing room?",
+      cta: false,
+      joinLabel: "🎄 Enter the Room",
+      showReset: false
+    },
+    host: {
+      label: "Step 2 · Host setup",
+      subtitle: "Share the generated code and tap Enter when you’re ready to join.",
+      cta: true,
+      joinLabel: "🎄 Enter My New Room",
+      showReset: true
+    },
+    join: {
+      label: "Step 2 · Join a room",
+      subtitle: "Pick a lobby listing or paste the code your host shared.",
+      cta: true,
+      joinLabel: "🎮 Jump Into Game",
+      showReset: false
+    }
+  };
 
   const festiveWords = [
     "HOLLY",
@@ -1073,6 +1241,32 @@
     const word = festiveWords[Math.floor(Math.random() * festiveWords.length)];
     const digits = Math.floor(100 + Math.random() * 900);
     return `${word}-${digits}`;
+  }
+
+  function ensureHostCode(forceNew = false) {
+    if (!gameCodeInput) return "";
+    let code = formatGameCode(gameCodeInput.value);
+    if (!code || forceNew) {
+      code = generateFestiveCode();
+    }
+    gameCodeInput.value = code;
+    updateInviteState();
+    return code;
+  }
+
+  function setWizardStep(step = "mode") {
+    wizardStepState = step;
+    wizardSteps.forEach((el) => {
+      const target = el.dataset?.step;
+      el.classList.toggle("active", target === step);
+    });
+    const meta = wizardMeta[step] || wizardMeta.mode;
+    if (wizardStepLabel) wizardStepLabel.textContent = meta.label;
+    if (wizardStepSubtitle) wizardStepSubtitle.textContent = meta.subtitle;
+    if (wizardCta) wizardCta.style.display = meta.cta ? "flex" : "none";
+    if (joinBtn) joinBtn.textContent = meta.joinLabel;
+    if (resetGameBtn) resetGameBtn.style.display = meta.showReset ? "inline-flex" : "none";
+    if (step === "host") ensureHostCode();
   }
 
   function getRoomPath(subPath = "") {
@@ -1127,6 +1321,9 @@
     }
     const hasCode = Boolean(code);
     copyInviteBtn.disabled = !hasCode;
+    if (wizardCodeDisplay) {
+      wizardCodeDisplay.textContent = hasCode ? code : "----";
+    }
 
     if (!hasCode) {
       copyInviteBtn.textContent = "🔗 Copy Invite Link";
@@ -1199,6 +1396,8 @@
           gameCodeInput.value = room.code;
           updateInviteState();
         }
+        wizardChoice = "join";
+        setWizardStep("join");
         subscribeToGame(room.code);
         showToast(`Room ${room.code} loaded. Enter your name to join.`);
       });
@@ -1222,6 +1421,8 @@
       gameCodeInput.value = formatted;
       updateInviteState();
     }
+    wizardChoice = "join";
+    setWizardStep("join");
     subscribeToGame(formatted);
     if (storedFestiveName && usernameInput) {
       usernameInput.value = storedFestiveName;
@@ -1248,13 +1449,30 @@
     usernameInput.value = storedFestiveName;
   }
 
+  wizardHostCard?.addEventListener("click", () => {
+    wizardChoice = "host";
+    ensureHostCode();
+    setWizardStep("host");
+    showToast("Share your code then tap Enter when you're ready to manage.");
+  });
+
+  wizardJoinCard?.addEventListener("click", () => {
+    wizardChoice = "join";
+    setWizardStep("join");
+  });
+
+  wizardBackButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      wizardChoice = null;
+      setWizardStep(btn.dataset?.goStep || "mode");
+    });
+  });
+
+  setWizardStep("mode");
+
   createGameBtn?.addEventListener("click", () => {
     if (!gameCodeInput) return;
-    const newCode = generateFestiveCode();
-    gameCodeInput.value = newCode;
-    updateInviteState();
-    gameCodeInput.focus();
-    gameCodeInput.select();
+    ensureHostCode(true);
   });
 
   copyInviteBtn?.addEventListener("click", async () => {
@@ -1597,7 +1815,9 @@
           questionActive: true,
           currentResponderId: null,
           questionEndsAt: now + 30000,
-          updatedAt: now
+          updatedAt: now,
+          gameOver: false,
+          winnerId: null
         };
         return current;
       }
@@ -1608,6 +1828,8 @@
         current.currentResponderId = null;
         current.questionEndsAt = now + 30000;
         current.updatedAt = now;
+        current.gameOver = false;
+        current.winnerId = null;
         return current;
       }
 
@@ -1617,6 +1839,8 @@
         current.currentResponderId = null;
         current.questionEndsAt = now + 30000;
         current.updatedAt = now;
+        current.gameOver = false;
+        current.winnerId = null;
         return current;
       }
 
@@ -1648,6 +1872,8 @@
       current.currentResponderId = null;
       current.questionEndsAt = null;
       current.updatedAt = now;
+      current.gameOver = false;
+      current.winnerId = null;
       return current;
     });
     hideBuzzOverlay();
@@ -1665,6 +1891,8 @@
       if (p) p.streak = 0;
       current.currentResponderId = null;
       current.updatedAt = now;
+      current.gameOver = false;
+      current.winnerId = null;
       return current;
     });
     hideBuzzOverlay();
@@ -1676,6 +1904,36 @@
     const now = Date.now();
     await runTransaction(gameRef, (current) => {
       if (!current) return current;
+      current.questionActive = false;
+      current.currentResponderId = null;
+      current.questionEndsAt = null;
+      current.updatedAt = now;
+      current.gameOver = false;
+      current.winnerId = null;
+      return current;
+    });
+    hideBuzzOverlay();
+    playRandomSound('next');
+  }
+
+  async function handleEndGame() {
+    if (!isManager || !ensureGameSelected()) return;
+    const now = Date.now();
+    await runTransaction(gameRef, (current) => {
+      if (!current) return current;
+      current.players = current.players || {};
+      const playerEntries = Object.entries(current.players).map(([id, data]) => ({
+        id,
+        name: data?.name || "Player",
+        score: data?.score || 0
+      }));
+      playerEntries.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.name.localeCompare(b.name);
+      });
+      const winner = playerEntries[0];
+      current.gameOver = true;
+      current.winnerId = winner ? winner.id : null;
       current.questionActive = false;
       current.currentResponderId = null;
       current.questionEndsAt = null;
@@ -1702,9 +1960,8 @@
 
   // ---- Manager actions: base buttons ----
   startNextBtn.addEventListener("click", handleStartNext);
-  correctBtn.addEventListener("click", handleCorrect);
-  incorrectBtn.addEventListener("click", handleIncorrect);
   skipBtn.addEventListener("click", handleSkip);
+  endGameBtn?.addEventListener("click", handleEndGame);
 
   // ---- Manager actions: overlay buttons ----
   overlayNextBtn.addEventListener("click", handleStartNext);
