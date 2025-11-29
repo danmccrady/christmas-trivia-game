@@ -214,6 +214,12 @@
       <input id="username-input" type="text" placeholder="e.g. Rudolph, Elf #1" />
       <button class="btn btn-primary" id="join-btn">Join the Game</button>
       <p class="tagline">First player becomes the Game Manager 🎅</p>
+
+      <!-- NEW: Reset Game button -->
+      <button class="btn btn-secondary" id="reset-game-btn" style="margin-top:8px;">
+        Reset Game (host)
+      </button>
+
       <p id="login-error" style="color:#ffcccc; font-size:0.85rem; min-height:1em;"></p>
     </div>
 
@@ -272,22 +278,18 @@
 
 <!-- Firebase (modular SDK) -->
 <script type="module">
-  // TODO: paste your Firebase config here:
-  // const firebaseConfig = { ... };
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBLzGCQZ5MlMlUbC8R7nSyft5TZt7ne8vw",
-  authDomain: "christmas-trivia-game.firebaseapp.com",
-  databaseUrl: "https://console.firebase.google.com/project/christmas-trivia-game/database/christmas-trivia-game-default-rtdb/data/~2F?fb_gclid=CjwKCAiAraXJBhBJEiwAjz7MZSYYMzcKUvLWha3D40GFQT8dBRJX9bOzhrK1ITOLTqcwyvo3T_pFbBoCAkQQAvD_BwE",
-  projectId: "christmas-trivia-game",
-  storageBucket: "christmas-trivia-game.firebasestorage.app",
-  messagingSenderId: "303000729988",
-  appId: "1:303000729988:web:0f4c267de48a2a4d5e85d1",
-  measurementId: "G-W2X9RER9C8"
-};
-
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBLzGCQZ5MlMlUbC8R7nSyft5TZt7ne8vw",
+    authDomain: "christmas-trivia-game.firebaseapp.com",
+    // FIXED: correct key name + URL (no console URL)
+    databaseURL: "https://christmas-trivia-game-default-rtdb.firebaseio.com",
+    projectId: "christmas-trivia-game",
+    storageBucket: "christmas-trivia-game.firebasestorage.app",
+    messagingSenderId: "303000729988",
+    appId: "1:303000729988:web:0f4c267de48a2a4d5e85d1",
+    measurementId: "G-W2X9RER9C8"
+  };
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import {
@@ -357,6 +359,7 @@ const firebaseConfig = {
   const usernameInput = document.getElementById("username-input");
   const joinBtn = document.getElementById("join-btn");
   const loginError = document.getElementById("login-error");
+  const resetGameBtn = document.getElementById("reset-game-btn");
 
   const roleBanner = document.getElementById("role-banner");
   const questionTextEl = document.getElementById("question-text");
@@ -568,6 +571,20 @@ const firebaseConfig = {
     if (e.key === "Enter") joinBtn.click();
   });
 
+  // ---- Reset game (host button on login screen) ----
+  resetGameBtn.addEventListener("click", async () => {
+    const sure = confirm("Reset the game for everyone? This clears players and questions.");
+    if (!sure) return;
+
+    try {
+      await remove(gameRef);
+      showToast("🎄 Game reset. First player to join becomes the new manager.");
+    } catch (err) {
+      console.error("Error resetting game", err);
+      showToast("Could not reset game. Check console for details.");
+    }
+  });
+
   // ---- Buzz ----
   buzzBtn.addEventListener("click", async () => {
     if (!myId) return;
@@ -582,51 +599,50 @@ const firebaseConfig = {
   });
 
   // ---- Manager actions ----
-startNextBtn.addEventListener("click", async () => {
-  if (!isManager) return;
+  startNextBtn.addEventListener("click", async () => {
+    if (!isManager) return;
 
-  await runTransaction(gameRef, (current) => {
-    const now = Date.now();
+    await runTransaction(gameRef, (current) => {
+      const now = Date.now();
 
-    // Initialize game if it doesn't exist
-    if (!current) {
-      current = {
-        players: {},
-        managerId: myId,
-        questionIndex: 0,
-        questionActive: true,
-        currentResponderId: null,
-        questionEndsAt: now + 30000
-      };
-      return current;
-    }
+      // Initialize game if it doesn't exist
+      if (!current) {
+        current = {
+          players: {},
+          managerId: myId,
+          questionIndex: 0,
+          questionActive: true,
+          currentResponderId: null,
+          questionEndsAt: now + 30000
+        };
+        return current;
+      }
 
-    // If we've never asked a question yet
-    if (current.questionIndex == null || current.questionIndex < 0) {
-      current.questionIndex = 0;
-      current.questionActive = true;
+      // If we've never asked a question yet
+      if (current.questionIndex == null || current.questionIndex < 0) {
+        current.questionIndex = 0;
+        current.questionActive = true;
+        current.currentResponderId = null;
+        current.questionEndsAt = now + 30000;
+        return current;
+      }
+
+      // If there are still questions left, move to the next one
+      if (current.questionIndex < questions.length - 1) {
+        current.questionIndex += 1;
+        current.questionActive = true;
+        current.currentResponderId = null;
+        current.questionEndsAt = now + 30000;
+        return current;
+      }
+
+      // No more questions left – end the game (no repeats)
+      current.questionActive = false;
       current.currentResponderId = null;
-      current.questionEndsAt = now + 30000;
+      current.questionEndsAt = null;
       return current;
-    }
-
-    // If there are still questions left, move to the next one
-    if (current.questionIndex < questions.length - 1) {
-      current.questionIndex += 1;
-      current.questionActive = true;
-      current.currentResponderId = null;
-      current.questionEndsAt = now + 30000;
-      return current;
-    }
-
-    // No more questions left – end the game (no repeats)
-    current.questionActive = false;
-    current.currentResponderId = null;
-    current.questionEndsAt = null;
-    return current;
+    });
   });
-});
-
 
   correctBtn.addEventListener("click", async () => {
     if (!isManager) return;
