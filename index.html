@@ -582,31 +582,51 @@ const firebaseConfig = {
   });
 
   // ---- Manager actions ----
-  startNextBtn.addEventListener("click", async () => {
-    if (!isManager) return;
-    await runTransaction(gameRef, (current) => {
-      if (!current) {
-        current = {
-          players: {},
-          managerId: myId,
-          questionIndex: 0,
-          questionActive: true,
-          currentResponderId: null,
-          questionEndsAt: Date.now() + 30000
-        };
-        return current;
-      }
-      const nextIndex =
-        current.questionIndex == null
-          ? 0
-          : (current.questionIndex + 1) % questions.length;
-      current.questionIndex = nextIndex;
+startNextBtn.addEventListener("click", async () => {
+  if (!isManager) return;
+
+  await runTransaction(gameRef, (current) => {
+    const now = Date.now();
+
+    // Initialize game if it doesn't exist
+    if (!current) {
+      current = {
+        players: {},
+        managerId: myId,
+        questionIndex: 0,
+        questionActive: true,
+        currentResponderId: null,
+        questionEndsAt: now + 30000
+      };
+      return current;
+    }
+
+    // If we've never asked a question yet
+    if (current.questionIndex == null || current.questionIndex < 0) {
+      current.questionIndex = 0;
       current.questionActive = true;
       current.currentResponderId = null;
-      current.questionEndsAt = Date.now() + 30000;
+      current.questionEndsAt = now + 30000;
       return current;
-    });
+    }
+
+    // If there are still questions left, move to the next one
+    if (current.questionIndex < questions.length - 1) {
+      current.questionIndex += 1;
+      current.questionActive = true;
+      current.currentResponderId = null;
+      current.questionEndsAt = now + 30000;
+      return current;
+    }
+
+    // No more questions left – end the game (no repeats)
+    current.questionActive = false;
+    current.currentResponderId = null;
+    current.questionEndsAt = null;
+    return current;
   });
+});
+
 
   correctBtn.addEventListener("click", async () => {
     if (!isManager) return;
