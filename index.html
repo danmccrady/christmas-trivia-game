@@ -1207,6 +1207,7 @@
     next: ['chime-1.mp3', 'chime-2.mp3', 'chime-3.mp3', 'chime-4.mp3'],
     winner: ['chime-3.mp3', 'chime-4.mp3']
   };
+  const QUESTION_DURATION_MS = 120000; // 2 minutes
 
   // ---- Local state ----
   let myId = null;
@@ -1866,6 +1867,15 @@
       return;
     }
 
+    const popupActive =
+      gameState.questionActive &&
+      buzzOverlay?.style.display === "flex" &&
+      !hasRealResponder;
+    if (popupActive) {
+      timerEl.textContent = "⏸️ Timer paused while the popup is open";
+      return;
+    }
+
     if (!gameState.questionActive || !gameState.questionEndsAt) {
       timerEl.textContent = "--";
       return;
@@ -2150,7 +2160,7 @@
           questionIndex: 0,
           questionActive: true,
           currentResponderId: null,
-          questionEndsAt: now + 30000,
+          questionEndsAt: now + QUESTION_DURATION_MS,
           updatedAt: now,
           gameOver: false,
           winnerId: null,
@@ -2165,7 +2175,7 @@
         current.questionIndex = 0;
         current.questionActive = true;
         current.currentResponderId = null;
-        current.questionEndsAt = now + 30000;
+        current.questionEndsAt = now + QUESTION_DURATION_MS;
         current.updatedAt = now;
         current.gameOver = false;
         current.winnerId = null;
@@ -2179,7 +2189,7 @@
         current.questionIndex += 1;
         current.questionActive = true;
         current.currentResponderId = null;
-        current.questionEndsAt = now + 30000;
+        current.questionEndsAt = now + QUESTION_DURATION_MS;
         current.updatedAt = now;
         current.gameOver = false;
         current.winnerId = null;
