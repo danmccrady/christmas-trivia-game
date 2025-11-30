@@ -1143,6 +1143,9 @@
     serverTimeReady = true;
     serverTimeWaiters.forEach((resolve) => resolve());
     serverTimeWaiters = [];
+    if (hasRenderedGameState && gameState.questionActive) {
+      updateTimer();
+    }
   });
 
   function getServerTime() {
@@ -1884,6 +1887,11 @@
 
   function updateTimer() {
     if (timerInterval) clearInterval(timerInterval);
+
+    if (!serverTimeReady) {
+      timerEl.textContent = "Syncing clock…";
+      return;
+    }
 
     const hasRealResponder =
       gameState.questionActive &&
