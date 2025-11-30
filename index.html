@@ -1134,6 +1134,15 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  let serverTimeOffset = 0;
+
+  onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
+    serverTimeOffset = snap.val() || 0;
+  });
+
+  function getServerTime() {
+    return Date.now() + serverTimeOffset;
+  }
 
   let currentGameCode = null;
   let gameRef = null;
@@ -1451,7 +1460,7 @@
   async function upsertPlayerRecord(playerId, playerName) {
     const playerRef = roomRef(`players/${playerId}`);
     if (!playerRef) return null;
-    const now = Date.now();
+    const now = getServerTime();
     await runTransaction(playerRef, (current) => {
       if (!current) {
         return {
@@ -1470,7 +1479,7 @@
       return current;
     });
     try {
-      await onDisconnect(playerRef).update({ connected: false, lastSeen: Date.now() });
+      await onDisconnect(playerRef).update({ connected: false, lastSeen: getServerTime() });
     } catch (err) {
       console.warn("Unable to set disconnect handler", err);
     }
@@ -1539,7 +1548,7 @@
 
   function timeAgo(timestamp) {
     if (!timestamp) return "Just now";
-    const diff = Date.now() - timestamp;
+    const diff = getServerTime() - timestamp;
     if (diff < 60000) return "Just now";
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
@@ -1892,7 +1901,7 @@
     }
 
     function tick() {
-      const now = Date.now();
+      const now = getServerTime();
       const diff = gameState.questionEndsAt - now;
       if (diff <= 0) {
         timerEl.textContent = "0s (time up)";
@@ -2120,7 +2129,7 @@
     }
     const roomBaseRef = roomRef();
     if (roomBaseRef) {
-      await update(roomBaseRef, { updatedAt: Date.now() });
+      await update(roomBaseRef, { updatedAt: getServerTime() });
     }
 
     const managerRef = roomRef("managerId");
@@ -2172,7 +2181,7 @@
   async function handleStartNext() {
     if (!isManager || !ensureGameSelected()) return;
     await runTransaction(gameRef, (current) => {
-      const now = Date.now();
+      const now = getServerTime();
 
       if (!current) {
         current = {
@@ -2232,7 +2241,7 @@
 
   async function handleCorrect() {
     if (!isManager || !ensureGameSelected()) return;
-    const now = Date.now();
+    const now = getServerTime();
     await runTransaction(gameRef, (current) => {
       if (!current || !current.currentResponderId) return current;
       const responderId = current.currentResponderId;
@@ -2261,7 +2270,7 @@
 
   async function handleIncorrect() {
     if (!isManager || !ensureGameSelected()) return;
-    const now = Date.now();
+    const now = getServerTime();
     await runTransaction(gameRef, (current) => {
       if (!current || !current.currentResponderId) return current;
       const responderId = current.currentResponderId;
@@ -2283,7 +2292,7 @@
 
   async function handleSkip() {
     if (!isManager || !ensureGameSelected()) return;
-    const now = Date.now();
+    const now = getServerTime();
     await runTransaction(gameRef, (current) => {
       if (!current) return current;
       current.questionActive = false;
@@ -2303,7 +2312,7 @@
 
   async function handleEndGame() {
     if (!isManager || !ensureGameSelected()) return;
-    const now = Date.now();
+    const now = getServerTime();
     await runTransaction(gameRef, (current) => {
       if (!current) return current;
       current.players = current.players || {};
