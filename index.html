@@ -1135,13 +1135,25 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   let serverTimeOffset = 0;
+  let serverTimeReady = false;
+  let serverTimeWaiters = [];
 
   onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
     serverTimeOffset = snap.val() || 0;
+    serverTimeReady = true;
+    serverTimeWaiters.forEach((resolve) => resolve());
+    serverTimeWaiters = [];
   });
 
   function getServerTime() {
     return Date.now() + serverTimeOffset;
+  }
+
+  function ensureServerTimeReady() {
+    if (serverTimeReady) return Promise.resolve();
+    return new Promise((resolve) => {
+      serverTimeWaiters.push(resolve);
+    });
   }
 
   let currentGameCode = null;
@@ -1460,6 +1472,7 @@
   async function upsertPlayerRecord(playerId, playerName) {
     const playerRef = roomRef(`players/${playerId}`);
     if (!playerRef) return null;
+    await ensureServerTimeReady();
     const now = getServerTime();
     await runTransaction(playerRef, (current) => {
       if (!current) {
@@ -2101,6 +2114,7 @@
       showToast("You're already in this game.");
       return;
     }
+    await ensureServerTimeReady();
     const name = usernameInput.value.trim();
     if (!name) {
       loginError.textContent = "Enter a festive name.";
@@ -2180,6 +2194,7 @@
   // ---- Manager action helpers ----
   async function handleStartNext() {
     if (!isManager || !ensureGameSelected()) return;
+    await ensureServerTimeReady();
     await runTransaction(gameRef, (current) => {
       const now = getServerTime();
 
@@ -2241,6 +2256,7 @@
 
   async function handleCorrect() {
     if (!isManager || !ensureGameSelected()) return;
+    await ensureServerTimeReady();
     const now = getServerTime();
     await runTransaction(gameRef, (current) => {
       if (!current || !current.currentResponderId) return current;
@@ -2270,6 +2286,7 @@
 
   async function handleIncorrect() {
     if (!isManager || !ensureGameSelected()) return;
+    await ensureServerTimeReady();
     const now = getServerTime();
     await runTransaction(gameRef, (current) => {
       if (!current || !current.currentResponderId) return current;
@@ -2292,6 +2309,7 @@
 
   async function handleSkip() {
     if (!isManager || !ensureGameSelected()) return;
+    await ensureServerTimeReady();
     const now = getServerTime();
     await runTransaction(gameRef, (current) => {
       if (!current) return current;
@@ -2312,6 +2330,7 @@
 
   async function handleEndGame() {
     if (!isManager || !ensureGameSelected()) return;
+    await ensureServerTimeReady();
     const now = getServerTime();
     await runTransaction(gameRef, (current) => {
       if (!current) return current;
