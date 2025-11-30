@@ -1877,6 +1877,7 @@
     }
 
     const popupActive =
+      isManager &&
       gameState.questionActive &&
       buzzOverlay?.style.display === "flex" &&
       !hasRealResponder;
